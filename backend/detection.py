@@ -19,13 +19,12 @@ video_output = output_dir / "tracked_match.mp4"
 
 # Start player tracking
 results = model.track(
-    source=str(video_path),
+    source=video_path,
     tracker="bytetrack.yaml",
-    classes=[0],  # COCO class 0 = person
-    conf=0.30,
-    stream=True,
     persist=True,
-    verbose=False
+    conf=0.30,
+    classes=[0],
+    stream=True
 )
 
 tracking_data = []
