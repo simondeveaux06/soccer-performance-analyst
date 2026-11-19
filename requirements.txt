@@ -1,4 +1,3 @@
-data/sample_videos/
 ultralytics
 opencv-python
 pandas
