@@ -1,1 +1,10 @@
 data/sample_videos/
+ultralytics
+opencv-python
+pandas
+numpy
+matplotlib
+streamlit
+streamlit-image-coordinates
+pillow
+lap
