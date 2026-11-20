@@ -16,7 +16,8 @@ import pandas as pd
 
 MODEL_NAME = "yolo11n.pt"
 
-COLUMNS = ["frame", "track_id", "x1", "y1", "x2", "y2", "confidence"]
+COLUMNS = ["frame", "track_id", "x1", "y1", "x2", "y2", "confidence",
+           "shirt_l", "shirt_a", "shirt_b"]
 
 
 # ---------------------------------------------------------------- video helpers
@@ -47,7 +48,7 @@ def read_frame(path, index):
 # ---------------------------------------------------------------- tracking
 
 def track_players(path, conf=0.30, progress=None, model_name=MODEL_NAME,
-                  pitch_detector=None, pitch_every=3):
+                  pitch_detector=None, pitch_every=3, colour_every=5):
     """Track every person in the video.
 
     Returns (tracks, keypoints):
@@ -55,7 +56,10 @@ def track_players(path, conf=0.30, progress=None, model_name=MODEL_NAME,
                 of the box (where the player touches the ground).
       keypoints {frame: (xy, conf)} pitch landmarks, found every `pitch_every`
                 frames if a pitch_detector is given (else empty).
+    Every `colour_every` frames each box also gets its shirt colour
+    (shirt_l/a/b, Lab), used for team detection. Other rows have NaN there.
     """
+    from teams import shirt_colour
     from ultralytics import YOLO  # imported here so the app starts fast
 
     model = YOLO(model_name)
@@ -76,12 +80,16 @@ def track_players(path, conf=0.30, progress=None, model_name=MODEL_NAME,
     for frame_index, result in enumerate(results):
         boxes = result.boxes
         if boxes is not None and boxes.id is not None:
+            sample = frame_index % colour_every == 0
             for (x1, y1, x2, y2), tid, c in zip(
                 boxes.xyxy.cpu().numpy(),
                 boxes.id.int().cpu().tolist(),
                 boxes.conf.cpu().tolist(),
             ):
-                rows.append((frame_index, tid, float(x1), float(y1), float(x2), float(y2), float(c)))
+                lab = shirt_colour(result.orig_img, x1, y1, x2, y2) if sample else None
+                sl, sa, sb = lab if lab is not None else (np.nan, np.nan, np.nan)
+                rows.append((frame_index, tid, float(x1), float(y1), float(x2), float(y2), float(c),
+                             float(sl), float(sa), float(sb)))
         if pitch_detector is not None and frame_index % pitch_every == 0:
             found = pitch_detector.detect(result.orig_img)
             if found is not None:
@@ -120,13 +128,14 @@ def pick_track(tracks, frame, x, y):
     return None
 
 
-def auto_stitch(tracks, selected_ids, max_gap_frames=60, max_distance_px=150):
+def auto_stitch(tracks, selected_ids, max_gap_frames=60, max_distance_px=150, allowed_ids=None):
     """Guess which new track IDs belong to the selected player.
 
     When the tracker loses a player and finds him again, he gets a new ID. For
     each selected track that ends, look for a track that starts shortly after,
     close to where he was last seen, and never overlaps in time with him.
     This is a guess: always check the result on the frames.
+    allowed_ids: if given, only these tracks can be picked (e.g. his own team).
     """
     ids = set(int(i) for i in selected_ids)
     if not ids:
@@ -151,7 +160,7 @@ def auto_stitch(tracks, selected_ids, max_gap_frames=60, max_distance_px=150):
             candidates = spans[(spans["min"] > end) & (spans["min"] <= end + max_gap_frames)].index
             best = None
             for cand in candidates:
-                if cand in ids:
+                if cand in ids or (allowed_ids is not None and cand not in allowed_ids):
                     continue
                 cand_frames = set(tracks.loc[tracks.track_id == cand, "frame"])
                 if cand_frames & selected_frames:
@@ -205,7 +214,11 @@ def player_stats(rows, info):
 
 
 def heatmap_figure(rows, background_bgr, bins=48):
-    """Heatmap of where his feet were, drawn over a video frame (on-screen pixels)."""
+    """Heatmap of where his feet were, drawn over a video frame.
+
+    In pixels for now: with a moving camera this shows where he was on screen,
+    not on the pitch. Pitch mapping fixes that.
+    """
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -226,14 +239,22 @@ def heatmap_figure(rows, background_bgr, bins=48):
     return fig
 
 
-def draw_boxes(frame_bgr, frame_tracks, selected_ids):
-    """All boxes with their IDs; the selected player is thick and green."""
+def draw_boxes(frame_bgr, frame_tracks, selected_ids, colour_of=None, hidden=()):
+    """All boxes with their IDs; the selected player is thick and green.
+
+    colour_of: optional {track_id: (b, g, r)} to colour boxes by team.
+    hidden: track IDs not to draw.
+    """
     img = frame_bgr.copy()
     for r in frame_tracks.itertuples():
+        if r.track_id in hidden:
+            continue
         chosen = r.track_id in selected_ids
-        color = (0, 220, 0) if chosen else (0, 165, 255)
+        color = (0, 220, 0) if chosen else (colour_of or {}).get(r.track_id, (0, 165, 255))
         thick = 4 if chosen else 2
         p1, p2 = (int(r.x1), int(r.y1)), (int(r.x2), int(r.y2))
+        if chosen:  # white outline so he stands out whatever the kit colours
+            cv2.rectangle(img, (p1[0] - 3, p1[1] - 3), (p2[0] + 3, p2[1] + 3), (255, 255, 255), 2)
         cv2.rectangle(img, p1, p2, color, thick)
         cv2.putText(img, str(r.track_id), (p1[0], max(p1[1] - 5, 12)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2 if chosen else 1)
