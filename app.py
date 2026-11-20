@@ -1,4 +1,4 @@
-"""Soccer Performance Analyst — web app.
+"""Soccer Performance Analyst - web app.
 
 Run from the repo root:
     streamlit run app.py
@@ -35,8 +35,8 @@ POSITIONS = [
     "Central midfielder", "Attacking midfielder", "Winger", "Striker",
 ]
 
-st.set_page_config(page_title="Soccer Performance Analyst", page_icon="⚽", layout="wide")
-st.title("⚽ Soccer Performance Analyst")
+st.set_page_config(page_title="Soccer Performance Analyst", page_icon=":soccer:", layout="wide")
+st.title(":soccer: Soccer Performance Analyst")
 ss = st.session_state
 
 # ------------------------------------------------------------------ 1. upload
@@ -44,7 +44,7 @@ st.header("1. Upload a clip")
 uploaded = st.file_uploader("Drag your match clip here", type=["mp4", "mov", "avi", "mkv"])
 if uploaded is None:
     st.info("Drop in a clip and tracking starts automatically. "
-            "Start with a short one (1–3 minutes) so it's quick.")
+            "Start with a short one (1-3 minutes) so it's quick.")
     st.stop()
 
 key = (uploaded.name, uploaded.size)
@@ -58,8 +58,8 @@ if ss.get("video_key") != key:
     ss.pop("highlight", None)
 
 info = ss.info
-st.caption(f"{info['width']}×{info['height']} · {info['fps']:.0f} fps · "
-           f"{info['frames']} frames · {info['duration']:.0f} s")
+st.caption(f"{info['width']}x{info['height']} | {info['fps']:.0f} fps | "
+           f"{info['frames']} frames | {info['duration']:.0f} s")
 
 # ------------------------------------------------------------------ 2. track
 st.header("2. Track the players")
@@ -75,11 +75,11 @@ if not DEFAULT_MODEL_PATH.exists():
                "To get distance, speed and the pro comparison, stop the app and run "
                "`bash download_models.sh`, then start it again.")
 if ss.tracks is None or rerun:  # starts automatically when a clip is dropped in
-    bar = st.progress(0.0, text="Tracking… the first run also downloads the model")
+    bar = st.progress(0.0, text="Tracking... the first run also downloads the model")
     detector = PitchDetector() if use_pitch else None
     ss.tracks, ss.keypoints = track_players(
         ss.video_path, conf=conf, pitch_detector=detector,
-        progress=lambda p: bar.progress(p, text=f"Tracking… {p:.0%}"))
+        progress=lambda p: bar.progress(p, text=f"Tracking... {p:.0%}"))
     ss.selected, ss.last_click = set(), None
     ss.pop("highlight", None)
     ss.pop("teams", None)
@@ -230,12 +230,12 @@ with right:
         if not gaps:
             st.write("Tracked the whole clip.")
         for start, end in gaps[:8]:
-            if st.button(f"Frames {start}–{end} ({(end - start + 1) / info['fps']:.0f} s)",
+            if st.button(f"Frames {start}-{end} ({(end - start + 1) / info['fps']:.0f} s)",
                          key=f"gap_{start}"):
                 ss.frame_idx = start
                 st.rerun()
         if len(gaps) > 8:
-            st.caption(f"…and {len(gaps) - 8} more")
+            st.caption(f"...and {len(gaps) - 8} more")
         st.caption("Gaps are normal when he's off screen.")
 
 if not ss.selected:
@@ -262,86 +262,4 @@ if ss.keypoints:
     phys = physical_stats(traj)
     with st.expander(f"Pitch mapping quality: pitch located in {report['usable_share']:.0%} of "
                      f"checked frames, him placed in {report['mapped_share']:.0%} of his frames"):
-        st.write(f"Frames checked: {report['checked']} · usable: {report['usable']} · "
-                 f"typical landmarks per frame: {report['median_landmarks']:.0f}")
-        reasons = {"few_points": "fewer than 5 landmarks found",
-                   "collinear": "landmarks all on one line",
-                   "no_fit": "landmarks didn't agree with each other",
-                   "bad_fit": "landmarks only roughly agreed",
-                   "implausible": "result wasn't a sensible camera view",
-                   "jumped": "jumped away from neighbouring frames"}
-        for k, v in sorted(report["rejected"].items(), key=lambda kv: -kv[1]):
-            st.write(f"- {v} frames rejected: {reasons.get(k, k)}")
-        st.caption("Tick 'Check pitch mapping' above to see the lines the app is using.")
-
-problems = quality_problems(phys, report) if ss.keypoints else []
-
-if phys is None:
-    st.subheader("Heatmap (on screen)")
-    st.caption("Without pitch mapping this is where he was on screen, not on the pitch.")
-    background = read_frame(ss.video_path, int(rows.frame.iloc[len(rows) // 2]))
-    st.pyplot(heatmap_figure(rows, background))
-    if ss.keypoints:
-        st.warning("Couldn't map him onto the pitch: the pitch lines weren't found often enough "
-                   "while he was visible.")
-else:
-    st.subheader("Physical stats")
-    st.caption(f"Over the {phys['minutes_tracked']:.1f} minutes he was tracked on the pitch. "
-               "Per-90 numbers scale that up to a full match.")
-    m = st.columns(4)
-    m[0].metric("Distance", f"{phys['total_distance']:.0f} m",
-                f"{phys['total_distance_p90'] / 1000:.1f} km per 90", delta_color="off")
-    m[1].metric("Top speed", f"{phys['top_speed']:.1f} km/h",
-                f"max {phys['max_speed']:.1f}", delta_color="off")
-    m[2].metric("Sprints (>25 km/h)", f"{phys['sprint_count']:.0f}",
-                f"{phys['sprint_count_p90']:.1f} per 90", delta_color="off")
-    m[3].metric("High intensity (>20 km/h)", f"{phys['hi_distance']:.0f} m",
-                f"{phys['hi_distance_p90']:.0f} m per 90", delta_color="off")
-    if problems:
-        st.warning("**Don't trust these numbers yet:** " + "; ".join(problems) + ".")
-
-    st.subheader("Heatmap")
-    flip = st.checkbox("Flip pitch (if his team attacks the other way)")
-    st.pyplot(pitch_heatmap(traj, length, width, flip=flip))
-
-    st.subheader(f"Compared with pro {position.lower()}s")
-    benchmarks = load_benchmarks()
-    comparison, group = compare_to_pros(phys, position, benchmarks)
-    if problems:
-        st.info("Comparison hidden until the data passes the checks above. A misleading "
-                "comparison is worse than none.")
-    elif benchmarks is None:
-        st.info("Pro data not found. Run `python scripts/build_benchmarks.py` once.")
-    elif comparison is None or comparison.empty:
-        st.info("No pro benchmarks for this position.")
-    else:
-        n = int((benchmarks.position_group == group).sum())
-        st.pyplot(percentile_chart(
-            comparison, f"vs {n} A-League {group.lower()}s (SkillCorner, 2024/25)"))
-        table = comparison.assign(
-            him=comparison.him.round(1), pro_median=comparison.pro_median.round(1),
-            percentile=comparison.percentile.round(0).astype(int))
-        st.dataframe(table[["metric", "unit", "him", "pro_median", "percentile"]]
-                     .rename(columns={"metric": "Metric", "unit": "Unit", "him": "Him",
-                                      "pro_median": "Pro median", "percentile": "Percentile"}),
-                     hide_index=True, width="stretch")
-        st.caption("Pro data: SkillCorner open data, Australian A-League 2024/25, performances "
-                   "over 60 min. Pro numbers come from full-match broadcast tracking; his come from "
-                   "only the time he was visible, so treat this as a guide, not an exact ranking.")
-
-st.subheader("Downloads")
-d1, d2, d3 = st.columns(3)
-d1.download_button("His tracking data (CSV)", rows.to_csv(index=False),
-                   file_name="player_tracking.csv", mime="text/csv")
-if traj is not None and len(traj):
-    d2.download_button("His pitch positions + speed (CSV)", traj.to_csv(index=False),
-                       file_name="player_pitch.csv", mime="text/csv")
-if d3.button("Make highlight video (only him boxed)"):
-    bar = st.progress(0.0, text="Rendering…")
-    out = Path(ss.workdir) / "highlight.mp4"
-    render_highlight(ss.video_path, rows, out, progress=lambda p: bar.progress(p))
-    ss.highlight = str(out)
-    bar.empty()
-if ss.get("highlight"):
-    d3.download_button("Download highlight video", Path(ss.highlight).read_bytes(),
-                       file_name="highlight.mp4", mime="video/mp4")
+        st.write(f"Frames checked:
