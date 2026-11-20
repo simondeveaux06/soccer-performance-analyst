@@ -1,0 +1,407 @@
+player_name,team_name,position_group,matches,minutes_per_match,total_distance_p90,running_distance_p90,hsr_distance_p90,sprint_distance_p90,hi_distance_p90,hsr_count_p90,sprint_count_p90,top_speed
+A. Taggart,Perth Glory Football Club,Center Forward,24,96.8,9778.0,1314.0,533.0,171.0,704.0,55.4,10.2,28.83
+A. Traoré,Melbourne Victory Football Club,Full Back,6,89.0,9272.0,1100.0,435.0,143.0,578.0,44.1,8.8,30.07
+D. Arslanagić,Macarthur FC,Central Defender,8,96.5,8923.0,971.0,262.0,36.0,298.0,21.8,2.3,25.82
+Douglas Costa,Sydney Football Club,Center Forward,4,94.2,10048.0,1361.0,388.0,68.0,456.0,34.4,4.1,26.38
+Douglas Costa,Sydney Football Club,Midfield,1,67.6,10447.0,1741.0,424.0,13.0,437.0,34.6,2.7,24.6
+Douglas Costa,Sydney Football Club,Wide Attacker,4,94.9,9816.0,1512.0,523.0,91.0,614.0,43.6,5.7,27.12
+H. Sakai,Auckland FC,Central Defender,3,99.1,9107.0,1067.0,375.0,161.0,536.0,42.7,10.3,30.27
+H. Sakai,Auckland FC,Full Back,21,98.0,9126.0,1161.0,512.0,166.0,678.0,50.0,10.2,28.88
+Javi López,Adelaide United Football Club,Full Back,6,94.4,9454.0,1191.0,447.0,79.0,527.0,40.8,5.2,27.6
+J. Brillante,Western Sydney Wanderers FC,Central Defender,4,88.4,9099.0,949.0,252.0,42.0,295.0,23.7,2.5,27.12
+J. Brillante,Western Sydney Wanderers FC,Midfield,20,87.2,11179.0,1981.0,547.0,109.0,655.0,46.0,5.7,27.11
+Juan Mata,Western Sydney Wanderers FC,Center Forward,1,63.2,11017.0,1726.0,735.0,51.0,786.0,49.9,4.3,25.7
+Juan Mata,Western Sydney Wanderers FC,Midfield,3,68.4,11084.0,1990.0,396.0,60.0,456.0,34.7,3.9,25.73
+K. Boli,Macarthur FC,Central Defender,8,93.1,8676.0,895.0,306.0,70.0,377.0,28.0,3.9,27.52
+M. Rojas,Wellington Phoenix FC,Wide Attacker,1,68.5,11879.0,1901.0,914.0,327.0,1241.0,78.9,15.8,29.0
+M. Jakoliš,Macarthur FC,Center Forward,2,99.8,9698.0,1229.0,394.0,155.0,549.0,44.2,7.7,30.45
+M. Jakoliš,Macarthur FC,Full Back,1,98.1,8986.0,1112.0,424.0,177.0,601.0,45.9,11.9,27.6
+M. Jakoliš,Macarthur FC,Midfield,1,96.2,9643.0,1210.0,439.0,196.0,634.0,44.9,10.3,30.2
+M. Jakoliš,Macarthur FC,Wide Attacker,20,92.8,9565.0,1156.0,524.0,206.0,730.0,53.3,10.7,29.93
+M. Leckie,Melbourne City FC,Midfield,6,89.5,10531.0,1577.0,509.0,174.0,684.0,52.3,9.6,28.83
+Roderick Miranda,Melbourne Victory Football Club,Central Defender,28,96.1,8902.0,1011.0,375.0,118.0,493.0,35.1,6.8,28.42
+S. Souprayen,Melbourne City FC,Central Defender,20,97.6,9612.0,1205.0,333.0,68.0,401.0,29.2,4.2,27.45
+T. Sainsbury,Central Coast Mariners Football Club,Central Defender,13,90.8,9594.0,1019.0,328.0,114.0,442.0,35.5,6.6,28.45
+T. Sainsbury,Central Coast Mariners Football Club,Full Back,1,97.3,9627.0,1320.0,324.0,104.0,427.0,34.2,5.5,29.9
+V. Germain,Macarthur FC,Center Forward,16,96.7,9042.0,1051.0,368.0,99.0,467.0,35.5,4.9,28.26
+V. Germain,Macarthur FC,Wide Attacker,1,98.1,9003.0,1116.0,232.0,67.0,299.0,27.5,3.7,27.7
+Z. Machach,Melbourne Victory Football Club,Center Forward,1,87.8,10661.0,1674.0,513.0,98.0,612.0,49.2,7.2,26.8
+Z. Machach,Melbourne Victory Football Club,Midfield,25,86.3,10202.0,1436.0,435.0,122.0,557.0,41.4,6.5,28.37
+D. Arzani,Melbourne Victory Football Club,Midfield,1,90.8,9349.0,1265.0,695.0,266.0,960.0,71.3,17.8,29.2
+D. Arzani,Melbourne Victory Football Club,Wide Attacker,18,77.2,10187.0,1522.0,742.0,263.0,1006.0,72.3,15.4,29.28
+A. Nabbout,Melbourne City FC,Center Forward,2,95.6,10208.0,1277.0,659.0,232.0,891.0,65.4,14.6,29.65
+A. Behich,Melbourne City FC,Central Defender,2,97.9,9582.0,1224.0,378.0,164.0,541.0,40.9,7.4,29.7
+A. Behich,Melbourne City FC,Full Back,25,98.8,9619.0,1318.0,495.0,173.0,668.0,48.2,9.6,29.52
+M. Jurman,Macarthur FC,Central Defender,10,90.0,8824.0,890.0,309.0,80.0,389.0,25.9,3.6,27.04
+J. Risdon,Perth Glory Football Club,Full Back,15,93.1,9785.0,1327.0,556.0,153.0,709.0,50.9,9.1,28.45
+S. Khaoui,Macarthur FC,Midfield,2,65.0,10142.0,1524.0,631.0,96.0,727.0,49.1,5.5,26.7
+L. Amos,Perth Glory Football Club,Midfield,7,70.3,11417.0,2244.0,734.0,114.0,848.0,57.8,7.9,26.57
+Chico Geraldes,Wellington Phoenix FC,Center Forward,2,90.4,10138.0,1434.0,408.0,162.0,570.0,42.8,8.5,28.5
+Chico Geraldes,Wellington Phoenix FC,Midfield,2,85.3,10821.0,1593.0,563.0,161.0,724.0,49.6,8.4,28.5
+Chico Geraldes,Wellington Phoenix FC,Wide Attacker,1,68.5,10699.0,1754.0,568.0,137.0,704.0,52.6,7.9,26.6
+A. Gersbach,Western Sydney Wanderers FC,Full Back,6,93.2,10311.0,1457.0,621.0,163.0,784.0,56.0,10.6,28.1
+B. Kraev,Western Sydney Wanderers FC,Wide Attacker,23,88.5,10765.0,1719.0,684.0,190.0,874.0,60.9,10.5,28.48
+M. Antonsson,Western Sydney Wanderers FC,Center Forward,3,71.7,10560.0,1174.0,586.0,238.0,823.0,56.5,10.9,30.57
+L. Verstraete,Auckland FC,Midfield,21,93.2,11323.0,2145.0,597.0,87.0,684.0,48.5,5.6,26.57
+P. Klimala,Sydney Football Club,Center Forward,19,87.6,8652.0,937.0,511.0,242.0,754.0,56.8,12.9,30.84
+J. Lolley,Sydney Football Club,Center Forward,3,81.6,10082.0,1237.0,531.0,229.0,760.0,51.5,11.4,28.73
+J. Lolley,Sydney Football Club,Full Back,3,88.2,10465.0,1689.0,734.0,135.0,869.0,61.2,7.8,28.83
+J. Lolley,Sydney Football Club,Midfield,2,83.2,10711.0,1653.0,522.0,97.0,619.0,50.8,5.4,27.45
+J. Lolley,Sydney Football Club,Wide Attacker,15,93.8,9940.0,1519.0,589.0,159.0,747.0,54.9,8.9,28.31
+B. Folami,Adelaide United Football Club,Midfield,1,70.3,9440.0,1095.0,632.0,183.0,815.0,56.3,12.8,28.0
+B. Folami,Adelaide United Football Club,Wide Attacker,10,74.6,9748.0,1314.0,629.0,257.0,886.0,64.3,12.4,29.19
+R. Edmondson,Central Coast Mariners Football Club,Center Forward,5,73.1,10256.0,1204.0,543.0,238.0,781.0,58.4,11.1,29.88
+B. Borrello,Western Sydney Wanderers FC,Center Forward,24,92.8,10440.0,1375.0,662.0,281.0,944.0,65.0,15.2,30.16
+Y. Cohen,Melbourne City FC,Wide Attacker,13,86.4,10102.0,1402.0,642.0,198.0,841.0,60.7,11.4,28.21
+F. Gallegos,Auckland FC,Midfield,22,87.2,11499.0,2282.0,842.0,160.0,1002.0,65.4,9.2,27.35
+J. Donachie,Western United,Central Defender,5,93.0,10350.0,1344.0,432.0,138.0,570.0,45.3,8.7,29.2
+J. Geria,Melbourne Victory Football Club,Full Back,12,97.5,9861.0,1318.0,552.0,247.0,800.0,58.4,13.1,30.5
+B. O'Neill,Perth Glory Football Club,Midfield,5,77.4,11677.0,2271.0,589.0,56.0,645.0,44.6,3.0,25.5
+K. Barbarouses,Wellington Phoenix FC,Center Forward,25,96.5,9806.0,1258.0,653.0,278.0,931.0,68.1,15.9,29.75
+K. Barbarouses,Wellington Phoenix FC,Wide Attacker,1,100.8,9464.0,1232.0,578.0,352.0,930.0,70.5,18.7,30.3
+B. Garuccio,Western United,Full Back,17,94.4,10690.0,1707.0,763.0,223.0,986.0,67.3,13.0,28.84
+R. Kitto,Adelaide United Football Club,Full Back,18,98.3,9796.0,1313.0,531.0,197.0,728.0,53.7,11.2,28.84
+R. Kitto,Adelaide United Football Club,Wide Attacker,2,84.9,10593.0,1532.0,811.0,286.0,1097.0,74.2,15.9,28.5
+N. Mileusnić,Perth Glory Football Club,Center Forward,1,61.6,11653.0,1920.0,907.0,320.0,1227.0,78.9,19.0,29.5
+N. Mileusnić,Perth Glory Football Club,Wide Attacker,7,73.6,10968.0,1733.0,822.0,329.0,1151.0,81.2,16.6,30.91
+S. Roux,Central Coast Mariners Football Club,Full Back,14,91.3,9606.0,1300.0,554.0,179.0,732.0,52.3,9.6,28.4
+A. Ouahim,Sydney Football Club,Midfield,12,85.0,11002.0,1954.0,630.0,100.0,730.0,52.2,6.4,26.72
+A. Ouahim,Sydney Football Club,Wide Attacker,3,73.6,10978.0,1755.0,604.0,106.0,710.0,53.8,7.7,27.63
+A. Kuen,Melbourne City FC,Center Forward,10,83.2,10934.0,1848.0,675.0,136.0,811.0,57.6,8.0,27.69
+A. Kuen,Melbourne City FC,Midfield,8,81.7,11545.0,2037.0,713.0,147.0,860.0,64.0,10.0,27.09
+A. Kuen,Melbourne City FC,Wide Attacker,1,86.2,10611.0,1596.0,649.0,229.0,877.0,60.6,9.4,29.4
+J. Jeggo,Melbourne City FC,Midfield,3,80.4,11218.0,2345.0,414.0,37.0,451.0,34.7,2.2,25.33
+B. Vriends,Adelaide United Football Club,Central Defender,23,98.8,9932.0,1409.0,408.0,90.0,498.0,35.9,5.4,27.6
+R. Danzaki,Western United,Wide Attacker,26,82.1,10383.0,1536.0,713.0,252.0,965.0,70.3,14.2,29.58
+Y. Misao,Perth Glory Football Club,Full Back,8,94.1,10310.0,1451.0,617.0,210.0,827.0,58.0,11.7,28.0
+H. Ishige,Wellington Phoenix FC,Center Forward,8,82.6,10930.0,1692.0,717.0,171.0,888.0,60.3,10.5,27.71
+H. Ishige,Wellington Phoenix FC,Midfield,1,85.9,10218.0,1487.0,559.0,109.0,668.0,52.4,6.3,27.1
+H. Ishige,Wellington Phoenix FC,Wide Attacker,12,87.0,10631.0,1653.0,671.0,134.0,805.0,55.9,8.0,27.38
+T. Okamoto,Perth Glory Football Club,Central Defender,1,97.0,9898.0,1200.0,447.0,65.0,512.0,40.8,3.7,27.3
+T. Okamoto,Perth Glory Football Club,Full Back,3,87.1,10034.0,1383.0,632.0,155.0,787.0,54.8,9.6,28.57
+H. Ibusuki,Western United,Center Forward,24,87.2,10102.0,1268.0,459.0,49.0,508.0,38.7,3.5,25.73
+K. Nagasawa,Wellington Phoenix FC,Center Forward,3,79.3,11088.0,1880.0,559.0,137.0,695.0,49.2,6.8,27.27
+K. Nagasawa,Wellington Phoenix FC,Midfield,11,83.5,10840.0,1757.0,494.0,87.0,580.0,39.5,4.3,26.1
+K. Nagasawa,Wellington Phoenix FC,Wide Attacker,1,62.7,11168.0,1587.0,666.0,299.0,965.0,61.8,15.8,27.9
+Léo Sena,Sydney Football Club,Midfield,18,93.2,9940.0,1457.0,358.0,44.0,402.0,29.3,2.5,25.83
+N. Vergos,Melbourne Victory Football Club,Center Forward,19,77.2,9937.0,1338.0,557.0,166.0,723.0,56.1,10.4,28.22
+A. McCalmont,Central Coast Mariners Football Club,Midfield,18,98.1,10613.0,1769.0,425.0,53.0,479.0,35.5,3.4,25.91
+T. Smith,Auckland FC,Central Defender,12,99.5,8760.0,955.0,334.0,94.0,428.0,29.9,5.0,28.15
+Wellissol,Newcastle United Jets FC,Center Forward,2,63.4,10426.0,1605.0,698.0,246.0,944.0,76.0,14.9,29.8
+G. Cléùr,Western Sydney Wanderers FC,Full Back,20,91.2,10488.0,1530.0,679.0,198.0,877.0,62.6,11.9,28.58
+N. Pijnaker,Auckland FC,Central Defender,26,97.3,9121.0,1014.0,366.0,99.0,464.0,33.2,5.7,28.08
+Mikael Doka,Central Coast Mariners Football Club,Center Forward,7,96.6,9912.0,1268.0,462.0,193.0,655.0,45.5,8.8,29.3
+Mikael Doka,Central Coast Mariners Football Club,Full Back,5,96.0,9756.0,1253.0,503.0,127.0,630.0,45.5,7.7,28.52
+Mikael Doka,Central Coast Mariners Football Club,Midfield,1,98.6,10040.0,1387.0,535.0,209.0,744.0,48.4,11.0,29.8
+Mikael Doka,Central Coast Mariners Football Club,Wide Attacker,12,98.7,10300.0,1384.0,572.0,210.0,782.0,56.3,10.4,29.54
+Asumah Abubakar,Brisbane Roar FC,Center Forward,8,89.5,10149.0,1158.0,488.0,185.0,673.0,51.9,9.3,29.96
+L. Cangá,Perth Glory Football Club,Central Defender,6,97.4,8890.0,915.0,321.0,101.0,422.0,32.7,5.7,28.62
+G. May,Auckland FC,Center Forward,28,94.6,9952.0,1624.0,710.0,176.0,886.0,63.5,10.8,27.8
+S. Wootton,Wellington Phoenix FC,Central Defender,25,97.9,8778.0,945.0,240.0,43.0,282.0,19.9,2.1,26.59
+Z. Clough,Adelaide United Football Club,Midfield,3,84.5,11090.0,1711.0,661.0,164.0,825.0,51.1,8.2,28.57
+Z. Clough,Adelaide United Football Club,Wide Attacker,19,84.0,11064.0,1684.0,619.0,184.0,803.0,56.5,10.0,28.72
+N. Moreno,Auckland FC,Wide Attacker,7,72.3,10594.0,1729.0,810.0,241.0,1051.0,72.4,14.6,28.8
+J. Barnett,Adelaide United Football Club,Midfield,19,91.7,11418.0,1796.0,513.0,100.0,613.0,41.9,5.0,27.03
+J. Brimmer,Auckland FC,Center Forward,4,80.8,10766.0,1766.0,682.0,140.0,822.0,57.9,7.0,27.65
+J. Brimmer,Auckland FC,Midfield,11,81.4,10622.0,1744.0,634.0,147.0,782.0,56.1,8.5,27.89
+N. Velupillay,Melbourne Victory Football Club,Wide Attacker,16,87.8,10332.0,1485.0,680.0,276.0,956.0,65.8,14.1,29.57
+S. Mauk,Adelaide United Football Club,Center Forward,4,90.2,10833.0,1662.0,703.0,122.0,825.0,57.3,7.5,27.25
+S. Mauk,Adelaide United Football Club,Midfield,21,83.4,10837.0,1672.0,657.0,158.0,815.0,56.4,8.6,27.48
+J. Elsey,Adelaide United Football Club,Central Defender,2,100.4,8931.0,969.0,312.0,103.0,414.0,27.8,3.6,27.85
+B. Halloran,Brisbane Roar FC,Center Forward,1,99.9,9838.0,1328.0,635.0,170.0,805.0,61.2,8.1,29.4
+B. Halloran,Brisbane Roar FC,Wide Attacker,14,82.0,10461.0,1410.0,589.0,230.0,820.0,61.8,13.2,29.74
+Y. Dukuly,Adelaide United Football Club,Wide Attacker,4,81.2,9710.0,1311.0,609.0,280.0,890.0,64.3,13.9,30.52
+J. Caletti,Brisbane Roar FC,Midfield,1,68.7,11938.0,2301.0,620.0,41.0,660.0,52.4,5.2,25.2
+J. Rawlins,Melbourne Victory Football Club,Central Defender,2,99.1,9272.0,1255.0,283.0,92.0,375.0,30.0,5.4,27.95
+J. Rawlins,Melbourne Victory Football Club,Full Back,12,99.7,9351.0,1150.0,534.0,199.0,733.0,52.3,10.2,29.42
+C. Timmins,Newcastle United Jets FC,Midfield,22,95.1,11452.0,2083.0,550.0,70.0,621.0,43.7,4.3,26.27
+B. Fornaroli,Melbourne Victory Football Club,Center Forward,9,80.6,9594.0,1306.0,464.0,139.0,603.0,46.5,8.2,28.03
+C. Ikonomidis,Macarthur FC,Center Forward,5,76.6,10724.0,1662.0,658.0,97.0,755.0,52.6,6.8,26.38
+C. Ikonomidis,Macarthur FC,Wide Attacker,3,69.9,10329.0,1374.0,670.0,192.0,862.0,62.2,11.6,28.4
+R. Warland,Perth Glory Football Club,Full Back,4,86.7,10139.0,1360.0,596.0,246.0,841.0,58.9,13.8,29.68
+Dane Ingham,Newcastle United Jets FC,Full Back,6,92.8,10221.0,1356.0,523.0,186.0,709.0,47.8,10.0,29.98
+Dane Ingham,Newcastle United Jets FC,Wide Attacker,1,70.0,10534.0,1212.0,518.0,392.0,910.0,52.7,14.1,31.9
+K. Trewin,Melbourne City FC,Central Defender,19,98.3,10151.0,1395.0,462.0,114.0,575.0,42.0,7.0,28.06
+K. Trewin,Melbourne City FC,Midfield,7,100.3,11336.0,2193.0,625.0,133.0,758.0,52.6,7.8,27.51
+C. Brown,Brisbane Roar FC,Full Back,3,93.0,10135.0,1573.0,677.0,158.0,835.0,51.3,8.7,28.4
+S. Neville,Brisbane Roar FC,Central Defender,2,83.2,9649.0,1019.0,289.0,112.0,401.0,28.7,5.4,29.7
+J. Courtney-Perkins,Sydney Football Club,Central Defender,3,90.6,10408.0,1548.0,536.0,127.0,663.0,45.4,7.0,28.13
+J. Courtney-Perkins,Sydney Football Club,Full Back,16,97.3,10866.0,1822.0,791.0,231.0,1022.0,65.6,13.4,28.78
+J. Courtney-Perkins,Sydney Football Club,Wide Attacker,1,89.4,11172.0,2175.0,923.0,227.0,1149.0,77.6,11.1,27.9
+J. O'Shea,Brisbane Roar FC,Midfield,26,98.9,10862.0,1571.0,415.0,63.0,478.0,35.3,3.6,26.62
+D. Pierias,Adelaide United Football Club,Full Back,22,98.4,10249.0,1397.0,644.0,327.0,971.0,63.9,15.3,31.21
+T. Uskok,Macarthur FC,Central Defender,19,97.7,9205.0,1045.0,354.0,67.0,421.0,28.9,4.0,26.87
+L. Wales,Perth Glory Football Club,Wide Attacker,5,88.8,10577.0,1663.0,674.0,191.0,865.0,65.4,12.6,28.12
+T. Imai,Western United,Central Defender,22,97.5,9833.0,1268.0,428.0,129.0,557.0,39.6,7.3,28.83
+T. Imai,Western United,Full Back,4,94.3,9974.0,1306.0,568.0,210.0,778.0,59.4,12.2,29.68
+B. Hamill,Melbourne Victory Football Club,Central Defender,20,97.8,9203.0,1075.0,429.0,146.0,575.0,41.9,8.4,29.34
+I. Vujica,Macarthur FC,Full Back,18,92.2,9801.0,1247.0,559.0,163.0,722.0,47.8,8.8,27.78
+A. Rufer,Wellington Phoenix FC,Midfield,17,93.8,10379.0,1452.0,399.0,69.0,468.0,33.6,3.7,26.61
+T. Payne,Wellington Phoenix FC,Central Defender,1,97.0,9105.0,1023.0,342.0,135.0,476.0,33.4,7.4,28.7
+T. Payne,Wellington Phoenix FC,Full Back,16,94.0,9761.0,1276.0,629.0,316.0,945.0,59.1,14.6,30.17
+T. Payne,Wellington Phoenix FC,Wide Attacker,2,97.0,9868.0,1318.0,667.0,192.0,859.0,58.4,11.1,28.7
+S. Sutton,Wellington Phoenix FC,Full Back,18,93.4,9899.0,1325.0,552.0,206.0,758.0,50.2,10.4,29.16
+S. Sutton,Wellington Phoenix FC,Wide Attacker,2,98.8,9995.0,1368.0,535.0,168.0,702.0,54.2,9.6,28.2
+N. Milanovic,Western Sydney Wanderers FC,Center Forward,1,95.8,10753.0,1240.0,525.0,257.0,782.0,49.8,13.2,31.2
+N. Milanovic,Western Sydney Wanderers FC,Wide Attacker,22,90.5,10680.0,1491.0,612.0,235.0,847.0,59.2,12.7,29.32
+N. Smith,Central Coast Mariners Football Club,Full Back,1,82.6,10522.0,1547.0,731.0,176.0,907.0,61.0,13.1,27.8
+H. Van Der Saag,Brisbane Roar FC,Full Back,6,76.6,10292.0,1409.0,546.0,151.0,698.0,48.2,8.2,28.33
+L. Brattan,Macarthur FC,Midfield,26,97.1,9981.0,1437.0,415.0,78.0,493.0,36.8,4.3,26.48
+A. Cáceres,Sydney Football Club,Midfield,21,98.1,11218.0,2191.0,716.0,141.0,856.0,57.2,8.4,27.78
+A. Cáceres,Sydney Football Club,Wide Attacker,4,99.9,11062.0,2044.0,659.0,137.0,795.0,55.8,8.1,27.32
+P. Retre,Wellington Phoenix FC,Midfield,14,84.6,11142.0,2009.0,592.0,85.0,677.0,45.5,4.1,25.78
+J. King,Sydney Football Club,Central Defender,5,95.6,9738.0,1278.0,449.0,136.0,585.0,42.0,7.5,28.34
+J. King,Sydney Football Club,Full Back,9,94.1,10400.0,1641.0,685.0,160.0,844.0,57.7,10.1,27.87
+B. Warland,Brisbane Roar FC,Central Defender,7,99.0,9937.0,1224.0,368.0,73.0,441.0,31.7,4.7,27.11
+C. Talbot,Melbourne City FC,Full Back,14,90.8,10589.0,1608.0,579.0,150.0,730.0,53.6,9.4,27.83
+P. Wood,Perth Glory Football Club,Center Forward,5,74.2,10395.0,1427.0,535.0,182.0,717.0,58.2,11.4,28.64
+P. Wood,Perth Glory Football Club,Midfield,1,79.6,10521.0,1323.0,781.0,293.0,1074.0,71.2,19.2,30.0
+R. Grant,Sydney Football Club,Central Defender,12,98.5,9123.0,1132.0,443.0,196.0,638.0,44.2,10.3,29.43
+R. Grant,Sydney Football Club,Full Back,13,100.7,9527.0,1312.0,625.0,241.0,866.0,58.6,12.3,29.11
+J. Yull,Adelaide United Football Club,Wide Attacker,6,88.1,10384.0,1599.0,682.0,199.0,881.0,61.1,11.8,28.05
+J. Hollman,Macarthur FC,Center Forward,4,93.0,10780.0,1601.0,595.0,121.0,716.0,51.8,6.8,28.38
+J. Hollman,Macarthur FC,Midfield,15,83.5,11033.0,1698.0,560.0,131.0,691.0,47.8,7.0,27.76
+J. Hollman,Macarthur FC,Wide Attacker,1,98.1,10699.0,1860.0,572.0,136.0,708.0,51.4,6.4,28.7
+A. Šušnjar,Newcastle United Jets FC,Central Defender,13,98.6,9533.0,1092.0,336.0,88.0,424.0,31.9,5.0,27.93
+L. Rose,Newcastle United Jets FC,Center Forward,11,84.4,10680.0,1586.0,806.0,352.0,1158.0,83.6,20.0,30.41
+L. Rose,Macarthur FC,Midfield,10,75.4,10022.0,1331.0,368.0,115.0,484.0,33.1,4.3,27.53
+C. M'Mombwa,Newcastle United Jets FC,Midfield,4,68.6,11338.0,1904.0,444.0,192.0,636.0,43.6,8.9,28.52
+Daniel De Silva,Macarthur FC,Center Forward,1,91.0,10293.0,1561.0,599.0,68.0,668.0,48.5,4.9,26.4
+Daniel De Silva,Macarthur FC,Midfield,2,70.4,11157.0,1973.0,693.0,98.0,791.0,57.5,4.5,26.95
+J. Clisby,Western Sydney Wanderers FC,Full Back,17,93.5,9948.0,1300.0,579.0,200.0,779.0,52.7,10.4,29.48
+D. Hall,Auckland FC,Central Defender,15,98.9,8885.0,930.0,311.0,132.0,443.0,33.3,7.1,30.87
+A. Kuol,Central Coast Mariners Football Club,Center Forward,18,82.3,9438.0,1065.0,501.0,220.0,721.0,56.1,12.8,29.59
+A. Thurgate,Western United,Midfield,28,97.0,11691.0,2103.0,604.0,136.0,740.0,50.2,7.8,27.9
+S. Ugarković,Melbourne City FC,Center Forward,2,97.9,11832.0,2016.0,636.0,164.0,800.0,59.3,11.9,27.85
+S. Ugarković,Melbourne City FC,Midfield,18,94.5,11798.0,2169.0,684.0,103.0,787.0,54.8,7.0,26.77
+L. Mauragis,Central Coast Mariners Football Club,Full Back,16,95.2,10412.0,1516.0,664.0,207.0,871.0,61.7,12.3,28.7
+L. Mauragis,Central Coast Mariners Football Club,Wide Attacker,1,75.7,10733.0,1721.0,704.0,213.0,916.0,72.5,13.1,28.6
+L. Jackson,Melbourne Victory Football Club,Central Defender,9,96.5,8902.0,973.0,342.0,103.0,445.0,34.3,5.9,29.04
+A. Goodwin,Adelaide United Football Club,Center Forward,16,78.6,10302.0,1447.0,594.0,234.0,828.0,62.3,13.1,30.42
+A. Goodwin,Adelaide United Football Club,Wide Attacker,1,80.6,10396.0,1513.0,591.0,113.0,703.0,60.3,7.8,27.4
+T. Gomulka,Perth Glory Football Club,Center Forward,1,94.8,11835.0,2151.0,458.0,66.0,525.0,42.7,6.6,26.2
+T. Gomulka,Perth Glory Football Club,Midfield,16,97.9,11252.0,1801.0,547.0,85.0,632.0,41.1,4.9,26.76
+M. Burgess,Sydney Football Club,Wide Attacker,2,91.3,11596.0,2033.0,716.0,121.0,837.0,53.7,7.4,27.1
+S. Pasquali,Western United,Midfield,2,75.9,12270.0,2748.0,915.0,117.0,1032.0,61.6,6.5,25.85
+A. Grant,Sydney Football Club,Central Defender,3,98.9,9722.0,1362.0,414.0,90.0,504.0,32.5,3.9,26.7
+C. Elliott,Auckland FC,Full Back,6,88.6,9768.0,1322.0,569.0,169.0,737.0,54.2,10.3,28.83
+R. Piscopo,Melbourne Victory Football Club,Center Forward,1,67.9,10949.0,1785.0,465.0,151.0,616.0,53.0,8.0,28.8
+R. Piscopo,Melbourne Victory Football Club,Midfield,3,73.2,11044.0,1812.0,644.0,158.0,802.0,56.2,6.6,27.7
+R. Piscopo,Melbourne Victory Football Club,Wide Attacker,10,73.4,10804.0,1757.0,766.0,199.0,965.0,67.5,13.5,27.97
+W. Scott,Macarthur FC,Full Back,7,88.7,10215.0,1560.0,703.0,303.0,1006.0,65.1,14.8,30.43
+W. Scott,Macarthur FC,Wide Attacker,3,71.0,10519.0,1705.0,715.0,246.0,960.0,69.7,15.2,28.63
+J. Hingert,Brisbane Roar FC,Full Back,10,84.9,10648.0,1374.0,600.0,201.0,801.0,51.7,10.0,28.54
+H. Bility,Brisbane Roar FC,Central Defender,21,97.0,9417.0,1026.0,332.0,101.0,432.0,33.9,6.2,29.02
+Jeong Tae-Wook,Western Sydney Wanderers FC,Central Defender,5,99.4,9341.0,1177.0,345.0,90.0,434.0,31.1,4.7,28.0
+N. Atkinson,Melbourne City FC,Full Back,18,95.4,10402.0,1538.0,632.0,204.0,836.0,59.6,12.0,28.78
+N. Atkinson,Melbourne City FC,Midfield,8,90.4,11603.0,1928.0,664.0,123.0,787.0,53.6,8.0,26.99
+N. Atkinson,Melbourne City FC,Wide Attacker,1,97.7,10717.0,1738.0,534.0,115.0,649.0,49.7,8.3,27.4
+G. Ferreyra,Melbourne City FC,Central Defender,16,98.0,9622.0,1256.0,383.0,99.0,482.0,36.5,6.5,28.32
+C. Howieson,Auckland FC,Center Forward,1,98.8,11062.0,2153.0,792.0,123.0,915.0,64.7,8.2,26.1
+C. Howieson,Auckland FC,Midfield,2,73.5,11073.0,2253.0,853.0,152.0,1006.0,65.5,8.6,27.4
+F. De Vries,Auckland FC,Full Back,27,93.7,10068.0,1372.0,638.0,235.0,873.0,57.3,11.5,29.16
+L. Rogerson,Auckland FC,Center Forward,1,62.6,10833.0,1786.0,785.0,336.0,1121.0,87.7,20.1,29.7
+L. Rogerson,Auckland FC,Wide Attacker,22,81.7,11263.0,1831.0,880.0,271.0,1150.0,76.6,15.2,28.92
+C. Hollman,Sydney Football Club,Midfield,9,96.0,11323.0,2060.0,469.0,72.0,542.0,37.9,4.4,26.6
+J. Kucharski,Sydney Football Club,Center Forward,1,102.8,10301.0,1398.0,719.0,275.0,994.0,68.3,17.5,31.4
+J. Kucharski,Sydney Football Club,Wide Attacker,1,62.2,11029.0,1678.0,840.0,386.0,1226.0,82.4,23.1,30.8
+A. Segecic,Sydney Football Club,Center Forward,1,92.6,10694.0,1657.0,645.0,389.0,1034.0,64.1,20.4,29.8
+A. Segecic,Sydney Football Club,Midfield,5,90.7,10893.0,1743.0,650.0,172.0,822.0,59.1,9.5,29.02
+A. Segecic,Sydney Football Club,Wide Attacker,6,82.9,11152.0,1876.0,718.0,253.0,971.0,74.6,14.8,28.9
+K. Mizunuma,Newcastle United Jets FC,Full Back,2,94.3,10459.0,1746.0,702.0,175.0,877.0,56.3,11.0,27.05
+K. Mizunuma,Newcastle United Jets FC,Wide Attacker,6,88.0,10471.0,1847.0,715.0,146.0,861.0,61.7,9.5,27.68
+R. Struick,Brisbane Roar FC,Wide Attacker,1,61.4,11107.0,1611.0,684.0,376.0,1059.0,71.9,13.2,31.5
+R. Teague,Melbourne Victory Football Club,Midfield,27,98.4,10143.0,1336.0,434.0,102.0,536.0,38.5,5.3,27.47
+J. Valadon,Melbourne Victory Football Club,Midfield,29,94.8,10966.0,1844.0,518.0,107.0,624.0,46.0,6.2,27.86
+M. Tilio,Melbourne City FC,Midfield,2,96.0,10155.0,1271.0,549.0,157.0,706.0,50.6,7.5,29.9
+M. Tilio,Melbourne City FC,Wide Attacker,14,87.8,10175.0,1386.0,605.0,194.0,800.0,59.6,11.7,29.43
+M. Caputo,Melbourne City FC,Center Forward,14,80.0,10779.0,1518.0,573.0,125.0,699.0,52.5,7.6,27.98
+M. Caputo,Melbourne City FC,Wide Attacker,1,98.3,10299.0,1474.0,499.0,79.0,578.0,55.9,7.3,27.0
+M. Mata,Auckland FC,Center Forward,7,73.6,10148.0,1484.0,584.0,94.0,678.0,53.4,6.3,27.11
+A. Hamzaoui,Perth Glory Football Club,Full Back,5,85.7,10259.0,1437.0,464.0,105.0,570.0,42.9,5.7,27.16
+Vitor Feijão,Central Coast Mariners Football Club,Wide Attacker,5,73.8,10267.0,1473.0,607.0,228.0,834.0,63.9,13.2,29.74
+P. Cancar,Newcastle United Jets FC,Central Defender,6,94.2,9625.0,1180.0,397.0,132.0,529.0,37.0,7.0,28.3
+P. Cancar,Newcastle United Jets FC,Full Back,5,97.0,9781.0,1120.0,431.0,180.0,611.0,43.0,8.7,29.74
+Walid Shour,Brisbane Roar FC,Central Defender,4,97.8,10549.0,1515.0,536.0,123.0,659.0,47.4,8.5,28.25
+Walid Shour,Brisbane Roar FC,Full Back,1,74.2,10750.0,1528.0,386.0,107.0,493.0,38.8,7.3,29.1
+Walid Shour,Brisbane Roar FC,Midfield,5,82.2,11726.0,2297.0,582.0,123.0,706.0,52.1,7.4,27.16
+D. Herrington,Central Coast Mariners Football Club,Central Defender,2,66.6,10174.0,1227.0,424.0,115.0,538.0,40.5,7.4,28.05
+D. Herrington,Central Coast Mariners Football Club,Full Back,2,64.3,9700.0,1113.0,421.0,108.0,530.0,37.8,6.3,29.35
+N. Acosta,Brisbane Roar FC,Wide Attacker,1,82.1,9626.0,1197.0,462.0,160.0,623.0,51.5,7.7,30.1
+T. Mourdoukoutas,Perth Glory Football Club,Central Defender,7,96.3,10023.0,1256.0,384.0,83.0,467.0,34.9,5.5,27.21
+J. Reec,Melbourne Victory Football Club,Wide Attacker,1,62.2,9761.0,1198.0,545.0,305.0,851.0,62.2,17.4,29.6
+F. Bérenguer,Brisbane Roar FC,Center Forward,6,70.3,10971.0,1372.0,417.0,82.0,500.0,39.9,5.3,27.62
+F. Bérenguer,Brisbane Roar FC,Midfield,5,68.8,11077.0,1493.0,434.0,128.0,562.0,44.0,7.1,27.56
+F. Bérenguer,Brisbane Roar FC,Wide Attacker,1,67.3,10830.0,1584.0,525.0,59.0,584.0,42.8,2.7,26.9
+J. Drew,Macarthur FC,Midfield,1,78.7,10888.0,1565.0,797.0,472.0,1269.0,89.2,20.6,30.5
+J. Drew,Macarthur FC,Wide Attacker,10,73.8,10612.0,1434.0,716.0,396.0,1112.0,77.5,18.5,30.94
+E. Alagich,Adelaide United Football Club,Full Back,1,96.5,10750.0,1447.0,521.0,199.0,720.0,53.1,9.3,29.7
+E. Alagich,Adelaide United Football Club,Midfield,25,97.7,11242.0,1820.0,452.0,89.0,541.0,39.2,4.6,27.16
+A. Popovic,Sydney Football Club,Central Defender,15,97.2,9796.0,1420.0,465.0,135.0,600.0,40.7,7.5,28.93
+Isaias,Adelaide United Football Club,Central Defender,4,94.9,10058.0,1288.0,388.0,105.0,492.0,34.6,7.6,27.23
+Isaias,Adelaide United Football Club,Midfield,4,97.6,10596.0,1856.0,559.0,105.0,663.0,46.3,5.1,27.12
+L. Zabala,Brisbane Roar FC,Central Defender,1,102.2,10655.0,1438.0,427.0,43.0,470.0,31.7,3.5,26.9
+L. Zabala,Brisbane Roar FC,Full Back,7,86.8,10208.0,1379.0,524.0,100.0,624.0,45.0,6.2,26.93
+L. Zabala,Brisbane Roar FC,Midfield,3,74.7,11866.0,2083.0,519.0,78.0,597.0,43.8,4.8,26.53
+H. Hore,Brisbane Roar FC,Center Forward,3,93.1,11238.0,1871.0,556.0,86.0,641.0,47.7,4.8,26.53
+H. Hore,Brisbane Roar FC,Midfield,2,97.2,11718.0,2001.0,478.0,64.0,541.0,46.8,4.2,25.75
+H. Hore,Brisbane Roar FC,Wide Attacker,5,83.9,11383.0,1939.0,661.0,101.0,762.0,55.6,7.1,26.58
+N. Botić,Western United,Center Forward,24,84.8,11050.0,1568.0,673.0,222.0,895.0,66.5,13.3,28.98
+R. Bozinovski,Western United,Midfield,24,85.1,11438.0,1999.0,562.0,138.0,700.0,49.9,7.2,28.18
+A. Burke-Gilroy,Brisbane Roar FC,Full Back,20,90.5,10470.0,1341.0,533.0,224.0,756.0,54.2,11.4,30.16
+A. Burke-Gilroy,Brisbane Roar FC,Wide Attacker,1,61.4,12655.0,2361.0,856.0,232.0,1088.0,83.6,10.3,31.0
+D. Williams,Perth Glory Football Club,Center Forward,1,99.1,10065.0,1275.0,424.0,27.0,451.0,35.4,2.7,25.7
+D. Williams,Perth Glory Football Club,Wide Attacker,1,68.5,10709.0,1763.0,493.0,105.0,598.0,43.3,6.6,28.0
+K. Jelacic,Brisbane Roar FC,Center Forward,3,92.6,11542.0,1832.0,728.0,224.0,952.0,62.2,12.3,29.07
+K. Jelacic,Brisbane Roar FC,Full Back,1,95.7,10568.0,1288.0,494.0,190.0,684.0,53.6,12.2,29.5
+K. Jelacic,Brisbane Roar FC,Midfield,1,103.8,11088.0,1752.0,629.0,181.0,810.0,58.1,9.5,28.1
+K. Jelacic,Brisbane Roar FC,Wide Attacker,16,92.8,10931.0,1710.0,657.0,200.0,857.0,61.1,11.2,28.94
+T. Ostler,Perth Glory Football Club,Full Back,4,94.6,10417.0,1566.0,612.0,151.0,763.0,59.0,10.7,27.88
+T. Ostler,Perth Glory Football Club,Wide Attacker,14,87.0,10922.0,1714.0,735.0,237.0,972.0,66.7,13.2,29.08
+T. Mrčela,Perth Glory Football Club,Central Defender,19,98.1,9264.0,1064.0,304.0,50.0,354.0,26.1,2.8,26.52
+A. Bonetig,Western Sydney Wanderers FC,Central Defender,26,99.5,9252.0,1057.0,298.0,75.0,373.0,27.0,4.1,28.17
+D. Wilmering,Newcastle United Jets FC,Full Back,21,99.2,10256.0,1464.0,708.0,291.0,999.0,67.4,14.8,29.87
+M. Francois,Auckland FC,Wide Attacker,6,64.6,10796.0,1675.0,845.0,257.0,1103.0,77.7,13.5,28.53
+J. Randall,Auckland FC,Center Forward,4,66.1,10948.0,1880.0,843.0,281.0,1124.0,85.8,16.7,28.93
+J. Randall,Auckland FC,Wide Attacker,1,66.6,11254.0,1770.0,1088.0,486.0,1574.0,110.8,25.7,30.8
+I. Hughes,Wellington Phoenix FC,Central Defender,24,95.6,9446.0,1114.0,356.0,110.0,467.0,33.6,5.6,28.88
+L. Kelly-Heald,Wellington Phoenix FC,Full Back,2,99.5,9924.0,1246.0,487.0,205.0,692.0,47.5,10.4,29.0
+L. Kelly-Heald,Wellington Phoenix FC,Midfield,4,86.0,11399.0,2110.0,617.0,106.0,722.0,49.5,6.8,26.57
+L. Kelly-Heald,Wellington Phoenix FC,Wide Attacker,4,79.7,11327.0,1982.0,804.0,195.0,998.0,64.7,9.6,28.55
+F. Conchie,Wellington Phoenix FC,Midfield,2,68.1,11818.0,2405.0,655.0,60.0,715.0,55.5,4.0,25.8
+T. Aquilina,Newcastle United Jets FC,Central Defender,1,98.6,9707.0,1171.0,320.0,69.0,390.0,28.3,3.6,28.7
+T. Aquilina,Newcastle United Jets FC,Full Back,10,98.6,10039.0,1391.0,616.0,208.0,824.0,54.4,10.1,29.66
+T. Aquilina,Newcastle United Jets FC,Midfield,1,98.2,10388.0,1568.0,705.0,216.0,921.0,65.1,12.8,28.0
+T. Aquilina,Newcastle United Jets FC,Wide Attacker,13,95.2,10841.0,1771.0,769.0,179.0,948.0,61.0,9.6,28.29
+K. Grozos,Newcastle United Jets FC,Central Defender,16,99.3,9223.0,1037.0,280.0,69.0,349.0,26.1,3.6,28.27
+K. Grozos,Newcastle United Jets FC,Midfield,6,99.1,10690.0,1644.0,457.0,108.0,564.0,36.9,4.1,28.32
+M. Al-Taay,Wellington Phoenix FC,Midfield,1,62.6,11316.0,1896.0,790.0,42.0,832.0,58.9,1.4,24.7
+M. Al-Taay,Western Sydney Wanderers FC,Midfield,1,79.6,11163.0,2026.0,353.0,9.0,362.0,33.9,2.3,24.3
+M. Natta,Newcastle United Jets FC,Central Defender,16,96.3,9303.0,1054.0,315.0,88.0,403.0,31.1,5.0,28.29
+M. Natta,Newcastle United Jets FC,Full Back,3,99.5,9845.0,1244.0,461.0,163.0,624.0,46.7,9.0,30.0
+Clarismario Rodrigues,Melbourne Victory Football Club,Full Back,2,65.5,9580.0,1302.0,557.0,250.0,807.0,55.0,11.7,32.3
+Clarismario Rodrigues,Melbourne Victory Football Club,Wide Attacker,9,87.3,9964.0,1364.0,657.0,368.0,1025.0,67.4,16.7,31.8
+A. Lopane,Melbourne City FC,Midfield,7,84.5,11798.0,2191.0,701.0,112.0,813.0,60.1,7.3,26.91
+B. Mazzeo,Melbourne City FC,Wide Attacker,5,84.0,11493.0,1911.0,739.0,225.0,964.0,69.5,12.9,29.56
+H. Politidis,Melbourne City FC,Wide Attacker,11,79.6,11185.0,1833.0,899.0,334.0,1233.0,88.3,19.2,29.79
+Z. Schreiber,Melbourne City FC,Midfield,10,75.0,12038.0,2305.0,474.0,47.0,521.0,37.3,3.4,25.28
+M. Memeti,Melbourne City FC,Center Forward,7,85.7,10427.0,1392.0,632.0,161.0,793.0,62.9,10.2,28.26
+M. Memeti,Melbourne City FC,Wide Attacker,3,83.0,10605.0,1523.0,655.0,196.0,851.0,60.4,13.0,28.27
+B. Oliveira,Macarthur FC,Wide Attacker,1,60.8,10332.0,1419.0,722.0,281.0,1003.0,69.5,14.8,29.0
+E. Adams,Newcastle United Jets FC,Center Forward,10,88.8,10940.0,1561.0,650.0,219.0,869.0,62.8,13.1,29.3
+E. Adams,Newcastle United Jets FC,Midfield,3,88.2,10611.0,1522.0,557.0,191.0,748.0,57.8,12.2,28.77
+E. Adams,Newcastle United Jets FC,Wide Attacker,9,89.4,11153.0,1751.0,783.0,215.0,998.0,69.8,13.1,28.52
+C. Taylor,Newcastle United Jets FC,Center Forward,1,61.3,12177.0,2213.0,866.0,88.0,954.0,64.6,4.4,25.8
+C. Taylor,Newcastle United Jets FC,Wide Attacker,17,86.8,11050.0,1752.0,798.0,251.0,1048.0,72.1,13.8,29.14
+L. Bayliss,Newcastle United Jets FC,Center Forward,1,80.6,10938.0,1584.0,692.0,83.0,775.0,49.1,6.7,26.8
+L. Bayliss,Newcastle United Jets FC,Midfield,17,84.6,11154.0,1610.0,396.0,78.0,474.0,34.4,4.1,26.61
+H. Steele,Central Coast Mariners Football Club,Midfield,23,93.6,11641.0,2101.0,496.0,72.0,567.0,38.1,3.5,26.42
+C. Theoharous,Central Coast Mariners Football Club,Wide Attacker,10,67.7,9606.0,1212.0,508.0,145.0,654.0,52.5,8.5,28.29
+B. Kaltak,Central Coast Mariners Football Club,Central Defender,26,98.5,9785.0,1169.0,372.0,103.0,475.0,35.2,5.9,28.74
+N. Paull,Central Coast Mariners Football Club,Central Defender,15,97.5,9689.0,1138.0,361.0,90.0,451.0,34.7,6.0,28.17
+N. Paull,Central Coast Mariners Football Club,Full Back,6,98.2,10151.0,1270.0,442.0,93.0,535.0,42.6,6.3,27.55
+B. Tapp,Central Coast Mariners Football Club,Central Defender,2,98.2,10154.0,1231.0,381.0,83.0,464.0,35.3,6.4,28.55
+M. Di Pizio,Central Coast Mariners Football Club,Center Forward,1,88.6,10462.0,1525.0,455.0,57.0,512.0,44.7,7.1,26.0
+M. Di Pizio,Central Coast Mariners Football Club,Wide Attacker,1,66.0,10577.0,1578.0,542.0,129.0,672.0,51.8,8.2,28.3
+Y. Nicolaou,Macarthur FC,Full Back,2,76.2,10439.0,1503.0,774.0,344.0,1117.0,70.9,15.4,29.45
+O. Jones,Macarthur FC,Central Defender,8,98.4,9382.0,1089.0,353.0,78.0,432.0,32.6,4.7,27.44
+T. Russell,Western United,Central Defender,1,87.0,10740.0,1582.0,741.0,355.0,1096.0,71.4,16.6,29.3
+T. Russell,Western United,Full Back,22,96.1,10328.0,1421.0,652.0,264.0,916.0,61.1,14.1,30.01
+A. Badolato,Melbourne Victory Football Club,Midfield,1,75.4,11177.0,2085.0,709.0,135.0,844.0,66.9,8.4,27.3
+A. Pantazopoulos,Western Sydney Wanderers FC,Central Defender,15,99.0,9116.0,961.0,281.0,84.0,365.0,27.2,4.4,29.01
+A. Pantazopoulos,Western Sydney Wanderers FC,Full Back,6,88.8,9820.0,1229.0,474.0,146.0,620.0,43.4,7.1,29.08
+D. Scicluna,Western Sydney Wanderers FC,Midfield,7,95.6,10264.0,1508.0,419.0,96.0,515.0,38.5,5.1,27.71
+O. Priestman,Western Sydney Wanderers FC,Midfield,20,91.2,11172.0,1761.0,451.0,92.0,543.0,39.5,4.5,27.27
+O. Priestman,Western Sydney Wanderers FC,Wide Attacker,1,63.2,12362.0,2233.0,760.0,269.0,1029.0,71.3,15.7,27.7
+Z. Sapsford,Western Sydney Wanderers FC,Center Forward,20,70.3,11246.0,1698.0,693.0,205.0,898.0,61.5,10.9,29.02
+M. Grimaldi,Western United,Midfield,1,77.0,11831.0,1817.0,830.0,158.0,987.0,71.3,10.5,27.9
+M. Grimaldi,Western United,Wide Attacker,16,76.6,11745.0,1994.0,816.0,198.0,1013.0,72.3,11.2,28.2
+K. Vidmar,Western United,Central Defender,3,93.5,10075.0,1327.0,484.0,160.0,644.0,42.0,9.0,28.03
+M. Ruhs,Western United,Center Forward,5,72.9,10878.0,1479.0,723.0,332.0,1055.0,77.0,16.8,30.5
+N. Pennington,Perth Glory Football Club,Center Forward,1,98.9,11874.0,2039.0,508.0,72.0,580.0,39.1,4.6,26.3
+N. Pennington,Perth Glory Football Club,Midfield,17,94.2,11605.0,2059.0,440.0,62.0,503.0,35.1,3.5,26.16
+J. Carluccio,Perth Glory Football Club,Full Back,2,96.5,10728.0,1599.0,716.0,285.0,1001.0,68.1,14.0,29.15
+J. Carluccio,Perth Glory Football Club,Wide Attacker,3,92.2,11040.0,1833.0,806.0,230.0,1036.0,71.3,13.0,27.87
+J. Carluccio,Western Sydney Wanderers FC,Full Back,1,75.4,10965.0,1808.0,866.0,130.0,996.0,71.6,11.9,26.7
+T. Waddingham,Brisbane Roar FC,Center Forward,10,92.5,10901.0,1521.0,484.0,119.0,604.0,47.6,8.2,28.2
+W. Kamijo,Sydney Football Club,Midfield,4,81.3,10840.0,1780.0,571.0,76.0,646.0,46.5,5.0,26.27
+A. Gurd,Sydney Football Club,Central Defender,3,93.7,9040.0,1117.0,370.0,90.0,460.0,36.2,6.7,27.9
+Z. de Jesus,Sydney Football Club,Full Back,7,81.8,10668.0,1534.0,697.0,252.0,949.0,64.8,12.9,29.64
+F. Monge,Melbourne Victory Football Club,Midfield,1,64.9,12277.0,2615.0,775.0,21.0,796.0,55.5,4.2,24.8
+L. Barr,Perth Glory Football Club,Central Defender,6,97.4,9411.0,1082.0,389.0,107.0,496.0,35.6,6.0,28.12
+L. Jovanovic,Adelaide United Football Club,Center Forward,7,69.6,10687.0,1659.0,700.0,169.0,869.0,62.2,10.7,28.26
+A. Zimarino,Brisbane Roar FC,Center Forward,3,66.3,11101.0,1749.0,533.0,58.0,591.0,48.4,4.5,25.8
+A. Zimarino,Brisbane Roar FC,Wide Attacker,2,68.4,10790.0,1641.0,603.0,99.0,702.0,53.3,7.2,26.95
+M. Sheridan,Wellington Phoenix FC,Central Defender,9,91.3,9840.0,1302.0,397.0,91.0,488.0,36.4,5.1,27.9
+M. Sheridan,Wellington Phoenix FC,Full Back,1,98.8,10531.0,1507.0,683.0,158.0,841.0,57.4,9.1,27.5
+M. Sheridan,Wellington Phoenix FC,Midfield,9,88.1,11790.0,2309.0,758.0,127.0,885.0,61.2,7.8,26.94
+M. Sheridan,Wellington Phoenix FC,Wide Attacker,1,62.4,11182.0,1853.0,1059.0,288.0,1347.0,90.8,15.9,28.8
+K. Majekodunmi,Perth Glory Football Club,Central Defender,3,96.4,9607.0,1030.0,340.0,66.0,406.0,30.5,4.7,27.77
+K. Majekodunmi,Perth Glory Football Club,Full Back,1,65.7,10701.0,1579.0,607.0,292.0,899.0,67.1,19.2,29.7
+N. Walker,Wellington Phoenix FC,Full Back,2,84.7,10495.0,1477.0,790.0,343.0,1132.0,73.8,17.0,30.0
+N. Walker,Wellington Phoenix FC,Midfield,1,61.2,11372.0,1784.0,1092.0,336.0,1428.0,86.7,16.2,29.2
+N. Walker,Wellington Phoenix FC,Wide Attacker,1,94.6,10767.0,1607.0,866.0,363.0,1230.0,85.6,16.2,31.1
+J. Inserra,Melbourne Victory Football Club,Full Back,5,89.7,10438.0,1539.0,682.0,292.0,974.0,69.0,15.9,29.68
+N. Amanatidis,Brisbane Roar FC,Center Forward,1,67.3,11225.0,1898.0,860.0,307.0,1167.0,78.9,21.4,31.2
+N. Amanatidis,Brisbane Roar FC,Wide Attacker,1,60.4,12512.0,1870.0,699.0,151.0,850.0,56.7,11.9,28.9
+K. Adamson,Macarthur FC,Full Back,23,94.1,10354.0,1461.0,645.0,197.0,842.0,59.3,11.8,28.56
+K. Adamson,Macarthur FC,Wide Attacker,1,104.6,9536.0,1389.0,573.0,160.0,733.0,54.2,10.3,27.6
+A. Ayoubi,Adelaide United Football Club,Wide Attacker,4,67.7,10457.0,1425.0,734.0,317.0,1051.0,78.1,16.3,30.1
+B. Brandtman,Central Coast Mariners Football Club,Center Forward,2,60.6,11687.0,2118.0,883.0,137.0,1021.0,66.1,7.4,26.7
+B. Brandtman,Central Coast Mariners Football Club,Wide Attacker,2,67.5,11376.0,1870.0,802.0,135.0,937.0,58.7,7.3,26.55
+H. Matthews,Sydney Football Club,Central Defender,11,96.6,9419.0,1215.0,400.0,139.0,539.0,40.0,8.1,29.48
+A. Lebib,Perth Glory Football Club,Central Defender,7,99.0,9652.0,1194.0,344.0,110.0,454.0,34.0,6.0,29.64
+Z. Lisolajski,Perth Glory Football Club,Full Back,9,89.9,10247.0,1458.0,574.0,197.0,771.0,56.7,11.7,29.31
+J. Lauton,Western United,Midfield,1,79.5,11660.0,2435.0,600.0,37.0,637.0,45.3,2.3,24.6
+P. Kikianis,Adelaide United Football Club,Central Defender,23,97.3,9400.0,1062.0,297.0,70.0,367.0,26.8,4.1,27.5
+A. Hammond,Western Sydney Wanderers FC,Wide Attacker,4,73.6,12027.0,2247.0,751.0,137.0,888.0,68.8,8.3,27.02
+C. Shamoon,Western United,Full Back,12,93.9,10768.0,1545.0,655.0,184.0,839.0,56.6,10.3,28.36
+A. Piol,Macarthur FC,Center Forward,5,68.3,10426.0,1288.0,626.0,286.0,912.0,66.4,15.3,30.2
+L. Vickery,Western United,Wide Attacker,1,79.2,10742.0,1718.0,923.0,451.0,1374.0,90.9,25.0,31.2
+K. Bos,Melbourne Victory Football Club,Full Back,22,97.3,10538.0,1510.0,656.0,169.0,826.0,56.2,10.2,28.4
+K. Bos,Melbourne Victory Football Club,Wide Attacker,1,64.4,10916.0,1841.0,545.0,145.0,691.0,46.1,5.6,28.2
+O. Lavale,Western United,Center Forward,2,75.6,11433.0,1757.0,800.0,211.0,1011.0,73.8,13.1,27.9
+A. Walatee,Western United,Wide Attacker,9,73.8,10401.0,1370.0,510.0,182.0,692.0,55.3,9.9,28.92
+S. Kuzevski,Central Coast Mariners Football Club,Full Back,3,90.5,10480.0,1504.0,628.0,241.0,869.0,58.7,13.9,29.03
+S. Kuzevski,Central Coast Mariners Football Club,Wide Attacker,3,68.4,10916.0,1695.0,655.0,202.0,857.0,62.7,12.3,28.0
+H. Eames,Central Coast Mariners Football Club,Midfield,10,94.8,11247.0,1963.0,506.0,69.0,575.0,40.4,3.3,25.98
+H. Eames,Central Coast Mariners Football Club,Wide Attacker,1,72.5,10822.0,1738.0,783.0,122.0,905.0,62.1,7.4,26.3
+A. De Lima,Central Coast Mariners Football Club,Center Forward,5,76.7,11299.0,1826.0,693.0,230.0,923.0,72.5,13.8,29.1
+D. Pelekanos,Western Sydney Wanderers FC,Central Defender,2,101.0,9002.0,876.0,293.0,62.0,355.0,27.6,4.5,27.35
+D. Pelekanos,Western Sydney Wanderers FC,Midfield,2,90.4,11480.0,1925.0,461.0,73.0,534.0,34.3,4.0,25.65
+C. Piper,Wellington Phoenix FC,Central Defender,4,97.2,9479.0,1037.0,411.0,151.0,561.0,39.8,8.1,29.1
+C. Piper,Wellington Phoenix FC,Full Back,6,90.2,9967.0,1260.0,612.0,245.0,856.0,60.5,14.1,29.08
+C. Piper,Wellington Phoenix FC,Midfield,1,98.8,9818.0,1403.0,716.0,381.0,1097.0,70.1,19.1,30.5
+C. Piper,Wellington Phoenix FC,Wide Attacker,4,84.0,10404.0,1566.0,706.0,290.0,996.0,72.8,16.1,29.7
+D. Leonard,Western United,Central Defender,27,96.6,10276.0,1424.0,484.0,108.0,592.0,42.6,7.3,27.79
+R. White,Adelaide United Football Club,Midfield,1,96.5,12281.0,2519.0,529.0,69.0,598.0,46.6,5.6,26.2
+K. Rahmani,Melbourne City FC,Wide Attacker,5,76.4,10707.0,1735.0,540.0,75.0,615.0,51.8,6.1,27.08
+A. Sulemani,Melbourne City FC,Center Forward,3,69.4,10372.0,1497.0,795.0,219.0,1015.0,77.8,15.6,27.9
+L. Gillion,Auckland FC,Wide Attacker,11,86.8,11332.0,1854.0,790.0,286.0,1076.0,76.6,15.1,29.92
+S. Klein,Brisbane Roar FC,Midfield,15,96.6,11608.0,1890.0,577.0,105.0,682.0,47.2,6.1,26.87
+L. Herrington,Brisbane Roar FC,Central Defender,15,95.6,9483.0,1038.0,283.0,51.0,334.0,25.5,3.5,26.57
+J. Brazete,Brisbane Roar FC,Midfield,1,85.3,10379.0,1365.0,450.0,69.0,519.0,38.0,6.3,25.7
+J. Brazete,Brisbane Roar FC,Wide Attacker,4,71.5,10283.0,1393.0,540.0,145.0,685.0,55.1,8.8,28.32
+C. Caicedo,Perth Glory Football Club,Center Forward,1,81.4,10653.0,1694.0,696.0,197.0,893.0,71.8,12.2,28.4
+J. Pearman,Perth Glory Football Club,Center Forward,8,85.3,11407.0,1888.0,488.0,76.0,564.0,42.6,4.5,26.7
+J. Pearman,Perth Glory Football Club,Midfield,1,91.2,11270.0,2024.0,569.0,86.0,655.0,45.4,3.0,26.0
+J. Pearman,Perth Glory Football Club,Wide Attacker,3,89.1,10872.0,1565.0,523.0,86.0,609.0,48.2,7.1,26.73
+A. Bugarija,Perth Glory Football Club,Center Forward,4,75.1,11872.0,2098.0,485.0,30.0,515.0,40.4,2.4,24.88
+W. Freney,Perth Glory Football Club,Midfield,4,77.4,11848.0,2410.0,649.0,111.0,760.0,53.5,6.1,26.62
+W. Freney,Perth Glory Football Club,Wide Attacker,2,68.0,11948.0,2274.0,831.0,85.0,917.0,62.8,7.3,26.0
+A. Faisal,Central Coast Mariners Football Club,Wide Attacker,1,69.9,10141.0,1411.0,625.0,304.0,929.0,69.5,16.7,31.5
+A. Faisal,Perth Glory Football Club,Wide Attacker,3,71.5,10347.0,1375.0,679.0,285.0,964.0,72.1,16.8,30.7
+K. Ngo,Perth Glory Football Club,Wide Attacker,2,65.1,10961.0,1531.0,816.0,180.0,996.0,67.7,14.5,28.0
+J. Damevski,Macarthur FC,Central Defender,1,86.0,8734.0,987.0,333.0,60.0,392.0,27.2,3.1,27.8
+D. Bosnjak,Macarthur FC,Wide Attacker,1,62.5,10538.0,1719.0,561.0,170.0,731.0,57.6,10.1,28.5
+H. Sawyer,Macarthur FC,Center Forward,1,100.8,9795.0,1292.0,553.0,95.0,647.0,51.8,5.4,26.7
+B. Gibson,Newcastle United Jets FC,Center Forward,8,78.7,10717.0,1610.0,777.0,263.0,1040.0,75.9,15.2,29.09
+F. Deli,Macarthur FC,Midfield,4,78.4,10750.0,1858.0,425.0,39.0,464.0,35.9,3.2,25.18
+L. Wong,Melbourne City FC,Center Forward,1,65.2,11729.0,2231.0,939.0,146.0,1085.0,74.6,8.3,26.8
+L. Wong,Melbourne City FC,Midfield,2,74.3,11705.0,2227.0,709.0,112.0,821.0,64.2,6.7,27.6
+L. Brooke-Smith,Wellington Phoenix FC,Wide Attacker,3,67.2,11705.0,1939.0,911.0,350.0,1261.0,86.7,16.5,29.63
+F. Talladira,Adelaide United Football Club,Full Back,1,96.0,9829.0,1251.0,372.0,71.0,443.0,36.6,4.7,27.5
+K. Shaw,Sydney Football Club,Central Defender,2,100.0,9326.0,1188.0,480.0,86.0,566.0,38.2,6.7,27.1
+A. Ludwik,Brisbane Roar FC,Central Defender,3,68.2,9895.0,1132.0,371.0,79.0,451.0,36.5,5.7,27.37
+H. Crawford,Adelaide United Football Club,Full Back,2,101.4,9794.0,1223.0,585.0,216.0,801.0,51.9,10.6,31.05
+H. Crawford,Adelaide United Football Club,Full Back,2,77.2,10022.0,1258.0,623.0,197.0,820.0,61.2,12.8,29.15
