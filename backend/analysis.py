@@ -48,59 +48,94 @@ def read_frame(path, index):
 # ---------------------------------------------------------------- tracking
 
 def track_players(path, conf=0.30, progress=None, model_name=MODEL_NAME,
-                  pitch_detector=None, pitch_every=3, colour_every=5):
+                  pitch_detector=None, pitch_every=3, colour_every=5,
+                  stride=1, start_frame=0, id_offset=0,
+                  checkpoint=None, checkpoint_every=1500):
     """Track every person in the video.
 
     Returns (tracks, keypoints):
       tracks    DataFrame, one row per box. foot_x / foot_y is the bottom-centre
                 of the box (where the player touches the ground).
-      keypoints {frame: (xy, conf)} pitch landmarks, found every `pitch_every`
-                frames if a pitch_detector is given (else empty).
-    Every `colour_every` frames each box also gets its shirt colour
-    (shirt_l/a/b, Lab), used for team detection. Other rows have NaN there.
+      keypoints {frame: (xy, conf)} pitch landmarks (empty without a pitch_detector).
+
+    stride       look at every `stride`-th frame only (2 = "fast mode", about 2x quicker).
+                 Frame numbers stay the real ones, so timings stay correct.
+    start_frame  begin here (used to resume an interrupted run).
+    id_offset    added to track IDs (so resumed IDs don't clash with earlier ones).
+    checkpoint   optional function(new_rows_df, new_keypoints, next_frame), called every
+                 `checkpoint_every` processed frames with what's new since last time.
+    pitch_every / colour_every are in real frames: pitch landmarks and shirt colours
+    are sampled about that often.
     """
     from teams import shirt_colour
     from ultralytics import YOLO  # imported here so the app starts fast
 
     model = YOLO(model_name)
     total = video_info(path)["frames"]
-    rows = []
-    keypoints = {}
+    pitch_step = max(1, round(pitch_every / stride))
+    colour_step = max(1, round(colour_every / stride))
+    all_rows, all_kp = [], {}
+    new_rows, new_kp = [], {}
 
-    results = model.track(
-        source=str(path),
-        tracker="bytetrack.yaml",
-        persist=True,
-        conf=conf,
-        classes=[0],  # 0 = person
-        stream=True,
-        verbose=False,
-    )
+    cap = cv2.VideoCapture(str(path))
+    if start_frame:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, int(start_frame))
+    frame_index, done = int(start_frame), 0
+    try:
+        while True:
+            ok, frame = cap.read()
+            if not ok:
+                break
+            result = model.track(frame, persist=True, tracker="bytetrack.yaml", conf=conf,
+                                 classes=[0], verbose=False)[0]
+            boxes = result.boxes
+            if boxes is not None and boxes.id is not None:
+                sample = done % colour_step == 0
+                for (x1, y1, x2, y2), tid, c in zip(
+                    boxes.xyxy.cpu().numpy(),
+                    boxes.id.int().cpu().tolist(),
+                    boxes.conf.cpu().tolist(),
+                ):
+                    lab = shirt_colour(frame, x1, y1, x2, y2) if sample else None
+                    sl, sa, sb = lab if lab is not None else (np.nan, np.nan, np.nan)
+                    new_rows.append((frame_index, tid + id_offset, float(x1), float(y1),
+                                     float(x2), float(y2), float(c),
+                                     float(sl), float(sa), float(sb)))
+            if pitch_detector is not None and done % pitch_step == 0:
+                found = pitch_detector.detect(frame)
+                if found is not None:
+                    new_kp[frame_index] = found
+            done += 1
+            # Skip the next stride-1 frames without decoding them (fast).
+            for _ in range(stride - 1):
+                if not cap.grab():
+                    break
+            frame_index += stride
+            if progress and total:
+                progress(min(frame_index / total, 1.0))
+            if checkpoint and done % checkpoint_every == 0:
+                checkpoint(_rows_to_df(new_rows), new_kp, frame_index)
+                all_rows += new_rows
+                all_kp.update(new_kp)
+                new_rows, new_kp = [], {}
+    finally:
+        cap.release()
+        # Hand over whatever is left (also when interrupted with Ctrl+C).
+        if checkpoint and (new_rows or new_kp):
+            checkpoint(_rows_to_df(new_rows), new_kp, frame_index)
+        all_rows += new_rows
+        all_kp.update(new_kp)
 
-    for frame_index, result in enumerate(results):
-        boxes = result.boxes
-        if boxes is not None and boxes.id is not None:
-            sample = frame_index % colour_every == 0
-            for (x1, y1, x2, y2), tid, c in zip(
-                boxes.xyxy.cpu().numpy(),
-                boxes.id.int().cpu().tolist(),
-                boxes.conf.cpu().tolist(),
-            ):
-                lab = shirt_colour(result.orig_img, x1, y1, x2, y2) if sample else None
-                sl, sa, sb = lab if lab is not None else (np.nan, np.nan, np.nan)
-                rows.append((frame_index, tid, float(x1), float(y1), float(x2), float(y2), float(c),
-                             float(sl), float(sa), float(sb)))
-        if pitch_detector is not None and frame_index % pitch_every == 0:
-            found = pitch_detector.detect(result.orig_img)
-            if found is not None:
-                keypoints[frame_index] = found
-        if progress and total:
-            progress(min((frame_index + 1) / total, 1.0))
+    return _rows_to_df(all_rows), all_kp
 
+
+
+
+def _rows_to_df(rows):
     df = pd.DataFrame(rows, columns=COLUMNS)
     df["foot_x"] = (df.x1 + df.x2) / 2
     df["foot_y"] = df.y2
-    return df, keypoints
+    return df
 
 
 # ---------------------------------------------------------------- picking the player
@@ -200,14 +235,16 @@ def missing_stretches(rows, total_frames, min_length=15):
     return stretches
 
 
+
+
 # ---------------------------------------------------------------- results
 
 def player_stats(rows, info):
     fps = info["fps"]
-    visible = len(rows)
+    visible = len(rows) * info.get("stride", 1)  # each checked frame stands for `stride` frames
     return {
         "Time tracked": f"{visible / fps:.0f} s",
-        "Share of clip": f"{100 * visible / max(info['frames'], 1):.0f}%",
+        "Share of clip": f"{min(100, 100 * visible / max(info['frames'], 1)):.0f}%",
         "Track IDs used": rows.track_id.nunique(),
         "Average confidence": f"{rows.confidence.mean():.2f}" if visible else "-",
     }
@@ -261,8 +298,9 @@ def draw_boxes(frame_bgr, frame_tracks, selected_ids, colour_of=None, hidden=())
     return img
 
 
-def render_highlight(path, rows, out_path, progress=None):
-    """Write a copy of the video with only the chosen player boxed."""
+def render_highlight(path, rows, out_path, progress=None, stride=1):
+    """Write a copy of the video with only the chosen player boxed.
+    In fast mode (stride > 1) the box from the last checked frame is held."""
     info = video_info(path)
     by_frame = rows.set_index("frame")
     cap = cv2.VideoCapture(str(path))
@@ -273,8 +311,9 @@ def render_highlight(path, rows, out_path, progress=None):
         ok, frame = cap.read()
         if not ok:
             break
-        if i in by_frame.index:
-            r = by_frame.loc[i]
+        k = i - (i % stride)
+        if k in by_frame.index:
+            r = by_frame.loc[k]
             cv2.rectangle(frame, (int(r.x1), int(r.y1)), (int(r.x2), int(r.y2)), (0, 220, 0), 3)
             cv2.ellipse(frame, (int(r.foot_x), int(r.foot_y)), (25, 8), 0, 0, 360, (0, 220, 0), 2)
         writer.write(frame)
