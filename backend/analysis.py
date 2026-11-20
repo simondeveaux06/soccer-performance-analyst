@@ -46,17 +46,22 @@ def read_frame(path, index):
 
 # ---------------------------------------------------------------- tracking
 
-def track_players(path, conf=0.30, progress=None, model_name=MODEL_NAME):
-    """Track every person in the video. Returns a DataFrame with one row per box.
+def track_players(path, conf=0.30, progress=None, model_name=MODEL_NAME,
+                  pitch_detector=None, pitch_every=3):
+    """Track every person in the video.
 
-    foot_x / foot_y is the bottom-centre of the box (where the player touches
-    the ground). That's the point we'll map onto the pitch later.
+    Returns (tracks, keypoints):
+      tracks    DataFrame, one row per box. foot_x / foot_y is the bottom-centre
+                of the box (where the player touches the ground).
+      keypoints {frame: (xy, conf)} pitch landmarks, found every `pitch_every`
+                frames if a pitch_detector is given (else empty).
     """
     from ultralytics import YOLO  # imported here so the app starts fast
 
     model = YOLO(model_name)
     total = video_info(path)["frames"]
     rows = []
+    keypoints = {}
 
     results = model.track(
         source=str(path),
@@ -77,13 +82,17 @@ def track_players(path, conf=0.30, progress=None, model_name=MODEL_NAME):
                 boxes.conf.cpu().tolist(),
             ):
                 rows.append((frame_index, tid, float(x1), float(y1), float(x2), float(y2), float(c)))
+        if pitch_detector is not None and frame_index % pitch_every == 0:
+            found = pitch_detector.detect(result.orig_img)
+            if found is not None:
+                keypoints[frame_index] = found
         if progress and total:
             progress(min((frame_index + 1) / total, 1.0))
 
     df = pd.DataFrame(rows, columns=COLUMNS)
     df["foot_x"] = (df.x1 + df.x2) / 2
     df["foot_y"] = df.y2
-    return df
+    return df, keypoints
 
 
 # ---------------------------------------------------------------- picking the player
@@ -196,11 +205,7 @@ def player_stats(rows, info):
 
 
 def heatmap_figure(rows, background_bgr, bins=48):
-    """Heatmap of where his feet were, drawn over a video frame.
-
-    In pixels for now: with a moving camera this shows where he was on screen,
-    not on the pitch. Pitch mapping fixes that.
-    """
+    """Heatmap of where his feet were, drawn over a video frame (on-screen pixels)."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
