@@ -4,3 +4,4 @@ backend/outputs/
 *.pt
 __pycache__/
 models/
+runs/
