@@ -19,6 +19,11 @@ from analysis import (  # noqa: E402
     auto_stitch, draw_boxes, heatmap_figure, missing_stretches, pick_track,
     player_rows, player_stats, read_frame, render_highlight, track_players, video_info,
 )
+from pitch import DEFAULT_MODEL_PATH, PitchDetector, keypoint_coverage, map_tracks_to_pitch  # noqa: E402
+from stats import (  # noqa: E402
+    clean_trajectory, compare_to_pros, load_benchmarks, percentile_chart,
+    physical_stats, pitch_heatmap,
+)
 
 DISPLAY_WIDTH = 960
 POSITIONS = [
@@ -32,9 +37,10 @@ ss = st.session_state
 
 # ------------------------------------------------------------------ 1. upload
 st.header("1. Upload a clip")
-uploaded = st.file_uploader("Match video", type=["mp4", "mov", "avi", "mkv"])
+uploaded = st.file_uploader("Drag your match clip here", type=["mp4", "mov", "avi", "mkv"])
 if uploaded is None:
-    st.info("Start with a short clip (1–3 minutes) so tracking is quick.")
+    st.info("Drop in a clip and tracking starts automatically. "
+            "Start with a short one (1–3 minutes) so it's quick.")
     st.stop()
 
 key = (uploaded.name, uploaded.size)
@@ -44,7 +50,7 @@ if ss.get("video_key") != key:
     path.write_bytes(uploaded.getbuffer())
     ss.video_key, ss.video_path, ss.workdir = key, str(path), str(folder)
     ss.info = video_info(path)
-    ss.tracks, ss.selected, ss.last_click = None, set(), None
+    ss.tracks, ss.keypoints, ss.selected, ss.last_click = None, {}, set(), None
     ss.pop("highlight", None)
 
 info = ss.info
@@ -53,12 +59,23 @@ st.caption(f"{info['width']}×{info['height']} · {info['fps']:.0f} fps · "
 
 # ------------------------------------------------------------------ 2. track
 st.header("2. Track the players")
-conf = st.slider("Detection confidence", 0.10, 0.80, 0.30, 0.05,
-                 help="Lower finds more players (and more false boxes).")
-if st.button("Run tracking", type="primary"):
+with st.expander("Settings"):
+    conf = st.slider("Detection confidence", 0.10, 0.80, 0.30, 0.05,
+                     help="Lower finds more players (and more false boxes).")
+    use_pitch = st.checkbox("Map positions onto the pitch", value=DEFAULT_MODEL_PATH.exists(),
+                            disabled=not DEFAULT_MODEL_PATH.exists(),
+                            help="Needs the pitch model: run `bash download_models.sh` once.")
+    rerun = st.button("Re-run tracking with these settings")
+if not DEFAULT_MODEL_PATH.exists():
+    st.warning("Pitch model not found, so you'll only get on-screen stats. "
+               "To get distance, speed and the pro comparison, stop the app and run "
+               "`bash download_models.sh`, then start it again.")
+if ss.tracks is None or rerun:  # starts automatically when a clip is dropped in
     bar = st.progress(0.0, text="Tracking… the first run also downloads the model")
-    ss.tracks = track_players(ss.video_path, conf=conf,
-                              progress=lambda p: bar.progress(p, text=f"Tracking… {p:.0%}"))
+    detector = PitchDetector() if use_pitch else None
+    ss.tracks, ss.keypoints = track_players(
+        ss.video_path, conf=conf, pitch_detector=detector,
+        progress=lambda p: bar.progress(p, text=f"Tracking… {p:.0%}"))
     ss.selected, ss.last_click = set(), None
     ss.pop("highlight", None)
     bar.empty()
@@ -85,6 +102,14 @@ with left:
         st.warning("Couldn't read that frame.")
     else:
         drawn = draw_boxes(frame, tracks[tracks.frame == frame_idx], ss.selected)
+        if ss.keypoints and ss.get("show_kp"):
+            near = min(ss.keypoints, key=lambda f: abs(f - frame_idx))
+            xy, kconf = ss.keypoints[near]
+            for i, ((kx, ky), kc) in enumerate(zip(xy, kconf)):
+                if kc >= 0.5:
+                    cv2.circle(drawn, (int(kx), int(ky)), 7, (255, 0, 255), -1)
+                    cv2.putText(drawn, str(i + 1), (int(kx) + 8, int(ky) - 8),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
         scale = DISPLAY_WIDTH / drawn.shape[1]
         shown = cv2.resize(drawn, (DISPLAY_WIDTH, int(drawn.shape[0] * scale)))
         click = streamlit_image_coordinates(
@@ -99,6 +124,10 @@ with left:
                 st.rerun()
 
 with right:
+    if ss.keypoints:
+        st.checkbox("Show pitch landmarks", key="show_kp",
+                    help="Pink dots = pitch points the model found. They should sit on line "
+                         "corners, the penalty spot or the centre circle.")
     st.subheader("Selected IDs")
     st.write(", ".join(map(str, sorted(ss.selected))) or "None yet")
     if st.button("Auto-find his other IDs", disabled=not ss.selected,
@@ -132,33 +161,91 @@ if not ss.selected:
 
 # ------------------------------------------------------------------ 4. results
 st.header("4. Results")
-position = st.selectbox("His position", POSITIONS, index=POSITIONS.index("Central midfielder"))
+c1, c2, c3 = st.columns(3)
+position = c1.selectbox("His position", POSITIONS, index=POSITIONS.index("Winger"))
+length = c2.number_input("Pitch length (m)", 80.0, 120.0, 105.0, 1.0,
+                         help="Measure or look it up; distances scale with this.")
+width = c3.number_input("Pitch width (m)", 45.0, 90.0, 68.0, 1.0)
 rows = player_rows(tracks, ss.selected)
 
 cols = st.columns(4)
 for col, (label, value) in zip(cols, player_stats(rows, info).items()):
     col.metric(label, value)
 
-st.subheader("Heatmap")
-st.caption("On-screen position for now. With a moving camera this isn't pitch position yet; "
-           "that comes with pitch mapping.")
-background = read_frame(ss.video_path, int(rows.frame.iloc[len(rows) // 2]))
-st.pyplot(heatmap_figure(rows, background))
+traj, phys = None, None
+if ss.keypoints:
+    mapped = map_tracks_to_pitch(rows, ss.keypoints, length, width,
+                                 max_gap_frames=int(info["fps"]))
+    traj = clean_trajectory(mapped, info["fps"])
+    phys = physical_stats(traj)
+    cover = keypoint_coverage(ss.keypoints, length, width)
+    st.caption(f"Pitch found in {cover:.0%} of checked frames · "
+               f"his position mapped in {mapped.pitch_x.notna().mean():.0%} of his frames.")
+
+if phys is None:
+    st.subheader("Heatmap (on screen)")
+    st.caption("Without pitch mapping this is where he was on screen, not on the pitch.")
+    background = read_frame(ss.video_path, int(rows.frame.iloc[len(rows) // 2]))
+    st.pyplot(heatmap_figure(rows, background))
+    if ss.keypoints:
+        st.warning("Couldn't map him onto the pitch: the pitch lines weren't found often enough "
+                   "while he was visible.")
+else:
+    st.subheader("Physical stats")
+    st.caption(f"Over the {phys['minutes_tracked']:.1f} minutes he was tracked on the pitch. "
+               "Per-90 numbers scale that up to a full match.")
+    m = st.columns(4)
+    m[0].metric("Distance", f"{phys['total_distance']:.0f} m",
+                f"{phys['total_distance_p90'] / 1000:.1f} km per 90", delta_color="off")
+    m[1].metric("Top speed", f"{phys['top_speed']:.1f} km/h",
+                f"max {phys['max_speed']:.1f}", delta_color="off")
+    m[2].metric("Sprints (>25 km/h)", f"{phys['sprint_count']:.0f}",
+                f"{phys['sprint_count_p90']:.1f} per 90", delta_color="off")
+    m[3].metric("High intensity (>20 km/h)", f"{phys['hi_distance']:.0f} m",
+                f"{phys['hi_distance_p90']:.0f} m per 90", delta_color="off")
+    if phys["minutes_tracked"] < 10:
+        st.info("Less than 10 minutes tracked, so per-90 numbers are rough. "
+                "Longer clips give a fairer comparison.")
+
+    st.subheader("Heatmap")
+    flip = st.checkbox("Flip pitch (if his team attacks the other way)")
+    st.pyplot(pitch_heatmap(traj, length, width, flip=flip))
+
+    st.subheader(f"Compared with pro {position.lower()}s")
+    benchmarks = load_benchmarks()
+    comparison, group = compare_to_pros(phys, position, benchmarks)
+    if benchmarks is None:
+        st.info("Pro data not found. Run `python scripts/build_benchmarks.py` once.")
+    elif comparison is None or comparison.empty:
+        st.info("No pro benchmarks for this position.")
+    else:
+        n = int((benchmarks.position_group == group).sum())
+        st.pyplot(percentile_chart(
+            comparison, f"vs {n} A-League {group.lower()}s (SkillCorner, 2024/25)"))
+        table = comparison.assign(
+            him=comparison.him.round(1), pro_median=comparison.pro_median.round(1),
+            percentile=comparison.percentile.round(0).astype(int))
+        st.dataframe(table[["metric", "unit", "him", "pro_median", "percentile"]]
+                     .rename(columns={"metric": "Metric", "unit": "Unit", "him": "Him",
+                                      "pro_median": "Pro median", "percentile": "Percentile"}),
+                     hide_index=True, width="stretch")
+        st.caption("Pro data: SkillCorner open data, Australian A-League 2024/25, performances "
+                   "over 60 min. Pro numbers come from full-match broadcast tracking; his come from "
+                   "only the time he was visible, so treat this as a guide, not an exact ranking.")
 
 st.subheader("Downloads")
-d1, d2 = st.columns(2)
+d1, d2, d3 = st.columns(3)
 d1.download_button("His tracking data (CSV)", rows.to_csv(index=False),
                    file_name="player_tracking.csv", mime="text/csv")
-if d2.button("Make highlight video (only him boxed)"):
+if traj is not None and len(traj):
+    d2.download_button("His pitch positions + speed (CSV)", traj.to_csv(index=False),
+                       file_name="player_pitch.csv", mime="text/csv")
+if d3.button("Make highlight video (only him boxed)"):
     bar = st.progress(0.0, text="Rendering…")
     out = Path(ss.workdir) / "highlight.mp4"
     render_highlight(ss.video_path, rows, out, progress=lambda p: bar.progress(p))
     ss.highlight = str(out)
     bar.empty()
 if ss.get("highlight"):
-    d2.download_button("Download highlight video", Path(ss.highlight).read_bytes(),
+    d3.download_button("Download highlight video", Path(ss.highlight).read_bytes(),
                        file_name="highlight.mp4", mime="video/mp4")
-
-st.subheader(f"Compared with pro {position.lower()}s")
-st.info("Coming next: once positions are mapped onto the pitch (metres instead of pixels), "
-        "his distance, speed and sprints get compared with pro tracking data for this position.")
