@@ -19,10 +19,13 @@ from analysis import (  # noqa: E402
     auto_stitch, draw_boxes, heatmap_figure, missing_stretches, pick_track,
     player_rows, player_stats, read_frame, render_highlight, track_players, video_info,
 )
-from pitch import DEFAULT_MODEL_PATH, PitchDetector, keypoint_coverage, map_tracks_to_pitch  # noqa: E402
+from pitch import (  # noqa: E402
+    DEFAULT_MODEL_PATH, PitchDetector, build_homographies, draw_projected_pitch, map_tracks_to_pitch,
+    nearest_homography,
+)
 from stats import (  # noqa: E402
-    clean_trajectory, compare_to_pros, load_benchmarks, percentile_chart,
-    physical_stats, pitch_heatmap,
+    clean_trajectory, compare_to_pros, load_benchmarks, percentile_chart, physical_stats,
+    pitch_heatmap, quality_problems,
 )
 
 DISPLAY_WIDTH = 960
@@ -88,6 +91,17 @@ if tracks.empty:
     st.stop()
 st.success(f"Found {tracks.track_id.nunique()} track IDs.")
 
+IMAGE_SIZE = (info["width"], info["height"])
+
+
+def homographies(length, width):
+    """Pitch homographies for this clip, cached per pitch size."""
+    key = ("H", length, width, len(ss.keypoints))
+    if ss.get("h_key") != key:
+        ss.h_key = key
+        ss.h_cache = build_homographies(ss.keypoints, length, width, IMAGE_SIZE)
+    return ss.h_cache
+
 # ------------------------------------------------------------------ 3. pick player
 st.header("3. Pick your player")
 st.write("Click him on the frame. If he gets a new ID later (number next to his box changes), "
@@ -102,6 +116,15 @@ with left:
         st.warning("Couldn't read that frame.")
     else:
         drawn = draw_boxes(frame, tracks[tracks.frame == frame_idx], ss.selected)
+        if ss.keypoints and ss.get("show_lines"):
+            Hs, _ = homographies(ss.get("pitch_len", 105.0), ss.get("pitch_wid", 68.0))
+            H = nearest_homography(Hs, frame_idx, max_gap_frames=int(info["fps"]))
+            if H is None:
+                cv2.putText(drawn, "Pitch not located near this frame", (20, 40),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
+            else:
+                drawn = draw_projected_pitch(drawn, H, ss.get("pitch_len", 105.0),
+                                             ss.get("pitch_wid", 68.0))
         if ss.keypoints and ss.get("show_kp"):
             near = min(ss.keypoints, key=lambda f: abs(f - frame_idx))
             xy, kconf = ss.keypoints[near]
@@ -125,6 +148,9 @@ with left:
 
 with right:
     if ss.keypoints:
+        st.checkbox("Check pitch mapping", key="show_lines",
+                    help="Draws the pitch lines where the app thinks they are (cyan). If mapping "
+                         "is working they sit right on top of the real white lines.")
         st.checkbox("Show pitch landmarks", key="show_kp",
                     help="Pink dots = pitch points the model found. They should sit on line "
                          "corners, the penalty spot or the centre circle.")
@@ -163,24 +189,36 @@ if not ss.selected:
 st.header("4. Results")
 c1, c2, c3 = st.columns(3)
 position = c1.selectbox("His position", POSITIONS, index=POSITIONS.index("Winger"))
-length = c2.number_input("Pitch length (m)", 80.0, 120.0, 105.0, 1.0,
+length = c2.number_input("Pitch length (m)", 80.0, 120.0, 105.0, 1.0, key="pitch_len",
                          help="Measure or look it up; distances scale with this.")
-width = c3.number_input("Pitch width (m)", 45.0, 90.0, 68.0, 1.0)
+width = c3.number_input("Pitch width (m)", 45.0, 90.0, 68.0, 1.0, key="pitch_wid")
 rows = player_rows(tracks, ss.selected)
 
 cols = st.columns(4)
 for col, (label, value) in zip(cols, player_stats(rows, info).items()):
     col.metric(label, value)
 
-traj, phys = None, None
+traj, phys, report = None, None, None
 if ss.keypoints:
-    mapped = map_tracks_to_pitch(rows, ss.keypoints, length, width,
-                                 max_gap_frames=int(info["fps"]))
+    mapped, report = map_tracks_to_pitch(rows, ss.keypoints, length, width, image_size=IMAGE_SIZE,
+                                         max_gap_frames=int(info["fps"]))
     traj = clean_trajectory(mapped, info["fps"])
     phys = physical_stats(traj)
-    cover = keypoint_coverage(ss.keypoints, length, width)
-    st.caption(f"Pitch found in {cover:.0%} of checked frames · "
-               f"his position mapped in {mapped.pitch_x.notna().mean():.0%} of his frames.")
+    with st.expander(f"Pitch mapping quality: pitch located in {report['usable_share']:.0%} of "
+                     f"checked frames, him placed in {report['mapped_share']:.0%} of his frames"):
+        st.write(f"Frames checked: {report['checked']} · usable: {report['usable']} · "
+                 f"typical landmarks per frame: {report['median_landmarks']:.0f}")
+        reasons = {"few_points": "fewer than 5 landmarks found",
+                   "collinear": "landmarks all on one line",
+                   "no_fit": "landmarks didn't agree with each other",
+                   "bad_fit": "landmarks only roughly agreed",
+                   "implausible": "result wasn't a sensible camera view",
+                   "jumped": "jumped away from neighbouring frames"}
+        for k, v in sorted(report["rejected"].items(), key=lambda kv: -kv[1]):
+            st.write(f"- {v} frames rejected: {reasons.get(k, k)}")
+        st.caption("Tick 'Check pitch mapping' above to see the lines the app is using.")
+
+problems = quality_problems(phys, report) if ss.keypoints else []
 
 if phys is None:
     st.subheader("Heatmap (on screen)")
@@ -203,9 +241,8 @@ else:
                 f"{phys['sprint_count_p90']:.1f} per 90", delta_color="off")
     m[3].metric("High intensity (>20 km/h)", f"{phys['hi_distance']:.0f} m",
                 f"{phys['hi_distance_p90']:.0f} m per 90", delta_color="off")
-    if phys["minutes_tracked"] < 10:
-        st.info("Less than 10 minutes tracked, so per-90 numbers are rough. "
-                "Longer clips give a fairer comparison.")
+    if problems:
+        st.warning("**Don't trust these numbers yet:** " + "; ".join(problems) + ".")
 
     st.subheader("Heatmap")
     flip = st.checkbox("Flip pitch (if his team attacks the other way)")
@@ -214,7 +251,10 @@ else:
     st.subheader(f"Compared with pro {position.lower()}s")
     benchmarks = load_benchmarks()
     comparison, group = compare_to_pros(phys, position, benchmarks)
-    if benchmarks is None:
+    if problems:
+        st.info("Comparison hidden until the data passes the checks above. A misleading "
+                "comparison is worse than none.")
+    elif benchmarks is None:
         st.info("Pro data not found. Run `python scripts/build_benchmarks.py` once.")
     elif comparison is None or comparison.empty:
         st.info("No pro benchmarks for this position.")
