@@ -23,6 +23,7 @@ from pitch import (  # noqa: E402
     DEFAULT_MODEL_PATH, PitchDetector, build_homographies, draw_projected_pitch, map_tracks_to_pitch,
     nearest_homography,
 )
+from storage import RUNS_DIR, list_runs, load_run, run_dir_for, save_chunk, write_meta  # noqa: E402
 from teams import OFF_PITCH, OTHER, TEAM_A, TEAM_B, UNKNOWN, assign_teams  # noqa: E402
 from stats import (  # noqa: E402
     clean_trajectory, compare_to_pros, load_benchmarks, percentile_chart, physical_stats,
@@ -39,33 +40,69 @@ st.set_page_config(page_title="Soccer Performance Analyst", page_icon=":soccer:"
 st.title(":soccer: Soccer Performance Analyst")
 ss = st.session_state
 
-# ------------------------------------------------------------------ 1. upload
-st.header("1. Upload a clip")
-uploaded = st.file_uploader("Drag your match clip here", type=["mp4", "mov", "avi", "mkv"])
-if uploaded is None:
-    st.info("Drop in a clip and tracking starts automatically. "
-            "Start with a short one (1-3 minutes) so it's quick.")
-    st.stop()
+# ------------------------------------------------------------------ 1. choose a match
+st.header("1. Choose a match")
+runs = list_runs()
+source = "Upload a clip"
+if runs:
+    source = st.radio("Source", ["Open a tracked match", "Upload a clip"], horizontal=True,
+                      help="Long videos: track them once with `python track_match.py video.mp4`, "
+                           "then open them here instantly.")
 
-key = (uploaded.name, uploaded.size)
-if ss.get("video_key") != key:
-    folder = Path(tempfile.mkdtemp(prefix="spa_"))
-    path = folder / uploaded.name
-    path.write_bytes(uploaded.getbuffer())
-    ss.video_key, ss.video_path, ss.workdir = key, str(path), str(folder)
-    ss.info = video_info(path)
-    ss.tracks, ss.keypoints, ss.selected, ss.last_click = None, {}, set(), None
-    ss.pop("highlight", None)
+if source == "Open a tracked match":
+    def run_label(rm):
+        d, m = rm
+        done = "" if m["status"] == "done" else f" (unfinished: {100 * m['next_frame'] / max(m['frames'], 1):.0f}%)"
+        mode = " | fast mode" if m.get("stride", 1) > 1 else ""
+        return f"{m['name']} | {m['frames'] / m['fps'] / 60:.0f} min{mode} | {m['updated']}{done}"
+    picked = st.selectbox("Tracked matches", runs, format_func=run_label)
+    run_path, meta = picked
+    key = ("run", str(run_path), meta.get("updated"))
+    if ss.get("video_key") != key:
+        if not Path(meta["video"]).exists():
+            st.error(f"The video for this match isn't at {meta['video']} anymore. "
+                     "Move it back there, or track it again.")
+            st.stop()
+        with st.spinner("Loading saved tracking..."):
+            tracks_loaded, keypoints_loaded, _ = load_run(run_path)
+        ss.video_key, ss.video_path, ss.workdir = key, meta["video"], str(run_path)
+        ss.info = dict(video_info(meta["video"]), stride=meta.get("stride", 1))
+        ss.tracks, ss.keypoints, ss.selected, ss.last_click = tracks_loaded, keypoints_loaded, set(), None
+        for k in ("highlight", "teams", "h_key", "frame_idx"):
+            ss.pop(k, None)
+    if meta["status"] != "done":
+        st.warning("This match isn't fully tracked yet. Run the same `track_match.py` command "
+                   "again to finish it; for now you'll see what's done so far.")
+else:
+    uploaded = st.file_uploader("Drag your match clip here", type=["mp4", "mov", "avi", "mkv"])
+    if uploaded is None:
+        st.info("Drop in a clip and tracking starts automatically. Start with a short one "
+                "(1-3 minutes). For a whole half, use `python track_match.py video.mp4` "
+                "in the terminal instead: it can't be interrupted and saves its progress.")
+        st.stop()
+    key = ("upload", uploaded.name, uploaded.size)
+    if ss.get("video_key") != key:
+        folder = RUNS_DIR / Path(uploaded.name).stem
+        folder.mkdir(parents=True, exist_ok=True)
+        path = folder / uploaded.name
+        path.write_bytes(uploaded.getbuffer())
+        ss.video_key, ss.video_path, ss.workdir = key, str(path), str(folder)
+        ss.info = dict(video_info(path), stride=1)
+        ss.tracks, ss.keypoints, ss.selected, ss.last_click = None, {}, set(), None
+        for k in ("highlight", "teams", "h_key", "frame_idx"):
+            ss.pop(k, None)
 
 info = ss.info
 st.caption(f"{info['width']}x{info['height']} | {info['fps']:.0f} fps | "
            f"{info['frames']} frames | {info['duration']:.0f} s")
+
 
 # ------------------------------------------------------------------ 2. track
 st.header("2. Track the players")
 with st.expander("Settings"):
     conf = st.slider("Detection confidence", 0.10, 0.80, 0.30, 0.05,
                      help="Lower finds more players (and more false boxes).")
+    fast = st.checkbox("Fast mode (check every 2nd frame, about 2x quicker)", value=False)
     use_pitch = st.checkbox("Map positions onto the pitch", value=DEFAULT_MODEL_PATH.exists(),
                             disabled=not DEFAULT_MODEL_PATH.exists(),
                             help="Needs the pitch model: run `bash download_models.sh` once.")
@@ -75,11 +112,24 @@ if not DEFAULT_MODEL_PATH.exists():
                "To get distance, speed and the pro comparison, stop the app and run "
                "`bash download_models.sh`, then start it again.")
 if ss.tracks is None or rerun:  # starts automatically when a clip is dropped in
-    bar = st.progress(0.0, text="Tracking... the first run also downloads the model")
+    bar = st.progress(0.0, text="Tracking... the first run also downloads the model. "
+                                "Don't click anything until it's done.")
     detector = PitchDetector() if use_pitch else None
+    stride = 2 if fast else 1
     ss.tracks, ss.keypoints = track_players(
-        ss.video_path, conf=conf, pitch_detector=detector,
+        ss.video_path, conf=conf, pitch_detector=detector, stride=stride,
         progress=lambda p: bar.progress(p, text=f"Tracking... {p:.0%}"))
+    ss.info["stride"] = stride
+    # Save it, so this clip shows up under "Open a tracked match" next time.
+    run_path = Path(ss.workdir)
+    for old in list(run_path.glob("tracks_*.parquet")) + list(run_path.glob("keypoints_*.npz")):
+        old.unlink()
+    save_chunk(run_path, ss.tracks, ss.keypoints)
+    write_meta(run_path, {"video": ss.video_path, "name": Path(ss.video_path).stem,
+                          "fps": info["fps"], "frames": info["frames"], "width": info["width"],
+                          "height": info["height"], "stride": stride, "status": "done",
+                          "next_frame": info["frames"],
+                          "settings": {"stride": stride, "conf": conf, "pitch": use_pitch}})
     ss.selected, ss.last_click = set(), None
     ss.pop("highlight", None)
     ss.pop("teams", None)
@@ -131,12 +181,17 @@ def his_team():
     return max(set(picked), key=picked.count) if picked else None
 
 
+
 # ------------------------------------------------------------------ 3. pick player
 st.header("3. Pick your player")
 st.write("Click him on the frame. If he gets a new ID later (number next to his box changes), "
          "move the slider there and click him again. Click a green box to unselect it.")
 
-frame_idx = st.slider("Frame", 0, max(info["frames"] - 1, 0), ss.get("frame_idx", 0), key="frame_idx")
+STRIDE = info.get("stride", 1)
+last_frame = max(info["frames"] - 1, 0)
+last_frame -= last_frame % STRIDE
+frame_idx = st.slider("Frame", 0, last_frame, min(ss.get("frame_idx", 0), last_frame),
+                      step=STRIDE, key="frame_idx")
 f1, f2 = st.columns([2, 3])
 show = f1.radio("Show boxes for", ["Everyone", TEAM_A, TEAM_B], horizontal=True, key="show_team")
 hide_others = f2.checkbox("Hide referees, keepers and people off the pitch", value=True,
@@ -233,7 +288,7 @@ with right:
         for start, end in gaps[:8]:
             if st.button(f"Frames {start}-{end} ({(end - start + 1) / info['fps']:.0f} s)",
                          key=f"gap_{start}"):
-                ss.frame_idx = start
+                ss.frame_idx = start - start % STRIDE
                 st.rerun()
         if len(gaps) > 8:
             st.caption(f"...and {len(gaps) - 8} more")
@@ -341,7 +396,7 @@ if traj is not None and len(traj):
 if d3.button("Make highlight video (only him boxed)"):
     bar = st.progress(0.0, text="Rendering...")
     out = Path(ss.workdir) / "highlight.mp4"
-    render_highlight(ss.video_path, rows, out, progress=lambda p: bar.progress(p))
+    render_highlight(ss.video_path, rows, out, progress=lambda p: bar.progress(p), stride=STRIDE)
     ss.highlight = str(out)
     bar.empty()
 if ss.get("highlight"):
