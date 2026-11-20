@@ -3,3 +3,4 @@ data/sample_videos/
 backend/outputs/
 *.pt
 __pycache__/
+models/
