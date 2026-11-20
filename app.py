@@ -23,6 +23,7 @@ from pitch import (  # noqa: E402
     DEFAULT_MODEL_PATH, PitchDetector, build_homographies, draw_projected_pitch, map_tracks_to_pitch,
     nearest_homography,
 )
+from teams import OFF_PITCH, OTHER, TEAM_A, TEAM_B, UNKNOWN, assign_teams  # noqa: E402
 from stats import (  # noqa: E402
     clean_trajectory, compare_to_pros, load_benchmarks, percentile_chart, physical_stats,
     pitch_heatmap, quality_problems,
@@ -81,6 +82,7 @@ if ss.tracks is None or rerun:  # starts automatically when a clip is dropped in
         progress=lambda p: bar.progress(p, text=f"Tracking… {p:.0%}"))
     ss.selected, ss.last_click = set(), None
     ss.pop("highlight", None)
+    ss.pop("teams", None)
     bar.empty()
 
 tracks = ss.tracks
@@ -102,12 +104,46 @@ def homographies(length, width):
         ss.h_cache = build_homographies(ss.keypoints, length, width, IMAGE_SIZE)
     return ss.h_cache
 
+def team_labels():
+    """Team for every track (shirt colour + who's off the pitch), cached."""
+    if "teams" not in ss:
+        pitch_xy = None
+        if ss.keypoints:
+            # Every 5th frame is plenty to tell who stays off the pitch.
+            sample = tracks[tracks.frame % 5 == 0]
+            pitch_xy, _ = map_tracks_to_pitch(sample, ss.keypoints, image_size=IMAGE_SIZE,
+                                              max_gap_frames=int(info["fps"]), margin_m=40.0)
+        ss.teams = assign_teams(tracks, pitch_xy=pitch_xy)
+    return ss.teams
+
+
+labels, team_info = team_labels()
+BOX_COLOURS = {OTHER: (160, 160, 160), OFF_PITCH: (70, 70, 70), UNKNOWN: (0, 165, 255)}
+BOX_COLOURS.update(team_info.get("colours", {}))
+BOX_COLOURS[OTHER], BOX_COLOURS[OFF_PITCH] = (160, 160, 160), (70, 70, 70)
+colour_of = {t: BOX_COLOURS.get(lab, (0, 165, 255)) for t, lab in labels.items()}
+
+
+def his_team():
+    """Most common team label among the selected IDs (or None)."""
+    picked = [labels.get(t) for t in ss.selected if labels.get(t) in (TEAM_A, TEAM_B)]
+    return max(set(picked), key=picked.count) if picked else None
+
+
 # ------------------------------------------------------------------ 3. pick player
 st.header("3. Pick your player")
 st.write("Click him on the frame. If he gets a new ID later (number next to his box changes), "
          "move the slider there and click him again. Click a green box to unselect it.")
 
 frame_idx = st.slider("Frame", 0, max(info["frames"] - 1, 0), ss.get("frame_idx", 0), key="frame_idx")
+f1, f2 = st.columns([2, 3])
+show = f1.radio("Show boxes for", ["Everyone", TEAM_A, TEAM_B], horizontal=True, key="show_team")
+hide_others = f2.checkbox("Hide referees, keepers and people off the pitch", value=True,
+                          key="hide_others")
+hidden = {t for t, lab in labels.items()
+          if t not in ss.selected and (
+              (hide_others and lab in (OTHER, OFF_PITCH)) or
+              (show != "Everyone" and lab != show))}
 frame = read_frame(ss.video_path, frame_idx)
 left, right = st.columns([3, 1])
 
@@ -115,7 +151,8 @@ with left:
     if frame is None:
         st.warning("Couldn't read that frame.")
     else:
-        drawn = draw_boxes(frame, tracks[tracks.frame == frame_idx], ss.selected)
+        drawn = draw_boxes(frame, tracks[tracks.frame == frame_idx], ss.selected,
+                           colour_of=colour_of, hidden=hidden)
         if ss.keypoints and ss.get("show_lines"):
             Hs, _ = homographies(ss.get("pitch_len", 105.0), ss.get("pitch_wid", 68.0))
             H = nearest_homography(Hs, frame_idx, max_gap_frames=int(info["fps"]))
@@ -139,7 +176,8 @@ with left:
             Image.fromarray(cv2.cvtColor(shown, cv2.COLOR_BGR2RGB)), key=f"img_{frame_idx}")
         if click and (frame_idx, click["x"], click["y"]) != ss.last_click:
             ss.last_click = (frame_idx, click["x"], click["y"])
-            tid = pick_track(tracks, frame_idx, click["x"] / scale, click["y"] / scale)
+            visible = tracks[~tracks.track_id.isin(hidden)]
+            tid = pick_track(visible, frame_idx, click["x"] / scale, click["y"] / scale)
             if tid is None:
                 st.toast("No player there.")
             else:
@@ -154,12 +192,30 @@ with right:
         st.checkbox("Show pitch landmarks", key="show_kp",
                     help="Pink dots = pitch points the model found. They should sit on line "
                          "corners, the penalty spot or the centre circle.")
+    if team_info.get("counts"):
+        st.subheader("Teams")
+        def swatch(lab):
+            b, g, r = BOX_COLOURS.get(lab, (0, 165, 255))
+            return (f"<span style='display:inline-block;width:14px;height:14px;border:1px solid #888;"
+                    f"background:rgb({r},{g},{b});margin-right:6px;vertical-align:middle'></span>")
+        names = {TEAM_A: TEAM_A, TEAM_B: TEAM_B, OTHER: "Refs / keepers",
+                 OFF_PITCH: "Off pitch", UNKNOWN: "Not sure"}
+        st.markdown("<br>".join(f"{swatch(k)}{names[k]}: {team_info['counts'][k]} IDs"
+                                for k in names if team_info["counts"].get(k)),
+                    unsafe_allow_html=True)
+        st.caption("Box colour = shirt colour the app detected.")
     st.subheader("Selected IDs")
     st.write(", ".join(map(str, sorted(ss.selected))) or "None yet")
+    team = his_team()
+    if team:
+        st.write(f"His team: **{team}**")
     if st.button("Auto-find his other IDs", disabled=not ss.selected,
-                 help="Guesses which new IDs are him after the tracker lost him. Check the result!"):
+                 help="Guesses which new IDs are him after the tracker lost him. Only looks at "
+                      "his own team. Check the result!"):
         before = set(ss.selected)
-        ss.selected = auto_stitch(tracks, ss.selected, max_gap_frames=int(info["fps"] * 2))
+        allowed = ({t for t, lab in labels.items() if lab in (team, UNKNOWN)} if team else None)
+        ss.selected = auto_stitch(tracks, ss.selected, max_gap_frames=int(info["fps"] * 2),
+                                  allowed_ids=allowed)
         added = ss.selected - before
         st.toast(f"Added {len(added)} ID(s): {sorted(added)}" if added else "Nothing new found.")
         st.rerun()
