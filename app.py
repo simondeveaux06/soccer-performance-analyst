@@ -23,6 +23,7 @@ from pitch import (  # noqa: E402
     DEFAULT_MODEL_PATH, PitchDetector, build_homographies, draw_projected_pitch, map_tracks_to_pitch,
     nearest_homography,
 )
+from stitch import chain_of, link_all, selected_minutes, suggest_at_frame  # noqa: E402
 from storage import RUNS_DIR, list_runs, load_run, run_dir_for, save_chunk, write_meta  # noqa: E402
 from teams import OFF_PITCH, OTHER, TEAM_A, TEAM_B, UNKNOWN, assign_teams  # noqa: E402
 from stats import (  # noqa: E402
@@ -68,7 +69,7 @@ if source == "Open a tracked match":
         ss.video_key, ss.video_path, ss.workdir = key, meta["video"], str(run_path)
         ss.info = dict(video_info(meta["video"]), stride=meta.get("stride", 1))
         ss.tracks, ss.keypoints, ss.selected, ss.last_click = tracks_loaded, keypoints_loaded, set(), None
-        for k in ("highlight", "teams", "h_key", "frame_idx"):
+        for k in ("highlight", "teams", "h_key", "frame_idx", "links", "pitch_sample"):
             ss.pop(k, None)
     if meta["status"] != "done":
         st.warning("This match isn't fully tracked yet. Run the same `track_match.py` command "
@@ -89,13 +90,12 @@ else:
         ss.video_key, ss.video_path, ss.workdir = key, str(path), str(folder)
         ss.info = dict(video_info(path), stride=1)
         ss.tracks, ss.keypoints, ss.selected, ss.last_click = None, {}, set(), None
-        for k in ("highlight", "teams", "h_key", "frame_idx"):
+        for k in ("highlight", "teams", "h_key", "frame_idx", "links", "pitch_sample"):
             ss.pop(k, None)
 
 info = ss.info
 st.caption(f"{info['width']}x{info['height']} | {info['fps']:.0f} fps | "
            f"{info['frames']} frames | {info['duration']:.0f} s")
-
 
 # ------------------------------------------------------------------ 2. track
 st.header("2. Track the players")
@@ -133,6 +133,8 @@ if ss.tracks is None or rerun:  # starts automatically when a clip is dropped in
     ss.selected, ss.last_click = set(), None
     ss.pop("highlight", None)
     ss.pop("teams", None)
+    ss.pop("links", None)
+    ss.pop("pitch_sample", None)
     bar.empty()
 
 tracks = ss.tracks
@@ -163,7 +165,9 @@ def team_labels():
             sample = tracks[tracks.frame % 5 == 0]
             pitch_xy, _ = map_tracks_to_pitch(sample, ss.keypoints, image_size=IMAGE_SIZE,
                                               max_gap_frames=int(info["fps"]), margin_m=40.0)
+        ss.pitch_sample = pitch_xy
         ss.teams = assign_teams(tracks, pitch_xy=pitch_xy)
+        ss.pop("links", None)
     return ss.teams
 
 
@@ -175,11 +179,38 @@ BOX_COLOURS[OTHER], BOX_COLOURS[OFF_PITCH] = (160, 160, 160), (70, 70, 70)
 colour_of = {t: BOX_COLOURS.get(lab, (0, 165, 255)) for t, lab in labels.items()}
 
 
+def id_links():
+    """Which ID most likely continues which (all players at once), cached."""
+    if "links" not in ss:
+        ps = ss.get("pitch_sample")
+        ss.links = link_all(ps, info["fps"], labels) if ps is not None and len(ps) else {}
+    return ss.links
+
+
+def add_player(tid):
+    """Add this ID and every ID chained to it. Returns how many IDs were added."""
+    new = chain_of(id_links(), {tid}) if id_links() else {tid}
+    added = new - ss.selected
+    ss.selected |= new
+    return len(added)
+
+
+def suggestions(frame_no):
+    """Yellow 'him?' candidates at this frame (only when he isn't selected here)."""
+    if not ss.selected or ss.get("pitch_sample") is None:
+        return []
+    if tracks[(tracks.frame == frame_no) & tracks.track_id.isin(ss.selected)].shape[0]:
+        return []
+    team = his_team()
+    allowed = {t for t, lab in labels.items() if lab in (team, UNKNOWN)} if team else None
+    return suggest_at_frame(tracks, ss.pitch_sample, ss.selected, frame_no, info["fps"],
+                            allowed_ids=allowed)
+
+
 def his_team():
     """Most common team label among the selected IDs (or None)."""
     picked = [labels.get(t) for t in ss.selected if labels.get(t) in (TEAM_A, TEAM_B)]
     return max(set(picked), key=picked.count) if picked else None
-
 
 
 # ------------------------------------------------------------------ 3. pick player
@@ -190,8 +221,10 @@ st.write("Click him on the frame. If he gets a new ID later (number next to his 
 STRIDE = info.get("stride", 1)
 last_frame = max(info["frames"] - 1, 0)
 last_frame -= last_frame % STRIDE
-frame_idx = st.slider("Frame", 0, last_frame, min(ss.get("frame_idx", 0), last_frame),
-                      step=STRIDE, key="frame_idx")
+if "jump_to" in ss:  # buttons ask for a jump; apply it before the slider is drawn
+    ss.frame_idx = ss.pop("jump_to")
+ss.frame_idx = min(ss.get("frame_idx", 0), last_frame)
+frame_idx = st.slider("Frame", 0, last_frame, step=STRIDE, key="frame_idx")
 f1, f2 = st.columns([2, 3])
 show = f1.radio("Show boxes for", ["Everyone", TEAM_A, TEAM_B], horizontal=True, key="show_team")
 hide_others = f2.checkbox("Hide referees, keepers and people off the pitch", value=True,
@@ -207,8 +240,19 @@ with left:
     if frame is None:
         st.warning("Couldn't read that frame.")
     else:
+        sugg = suggestions(frame_idx)
+        hidden -= {t for t, _ in sugg}  # always show (and allow clicking) the yellow guesses
         drawn = draw_boxes(frame, tracks[tracks.frame == frame_idx], ss.selected,
                            colour_of=colour_of, hidden=hidden)
+        here = tracks[tracks.frame == frame_idx].set_index("track_id")
+        for rank, (tid, _) in enumerate(sugg):
+            if tid in here.index:
+                r = here.loc[tid]
+                r = r.iloc[0] if getattr(r, "ndim", 1) > 1 else r
+                p1, p2 = (int(r.x1) - 4, int(r.y1) - 4), (int(r.x2) + 4, int(r.y2) + 4)
+                cv2.rectangle(drawn, p1, p2, (0, 215, 255), 4 if rank == 0 else 2)
+                cv2.putText(drawn, "him?" if rank == 0 else "?", (p1[0], p1[1] - 6),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 215, 255), 2)
         if ss.keypoints and ss.get("show_lines"):
             Hs, _ = homographies(ss.get("pitch_len", 105.0), ss.get("pitch_wid", 68.0))
             H = nearest_homography(Hs, frame_idx, max_gap_frames=int(info["fps"]))
@@ -236,8 +280,12 @@ with left:
             tid = pick_track(visible, frame_idx, click["x"] / scale, click["y"] / scale)
             if tid is None:
                 st.toast("No player there.")
+            elif tid in ss.selected:
+                ss.selected.discard(tid)  # click a green box to remove that ID
+                st.rerun()
             else:
-                ss.selected ^= {tid}  # toggle
+                n_added = add_player(tid)
+                st.toast(f"Added {n_added} ID(s) linked to {tid}.")
                 st.rerun()
 
 with right:
@@ -265,16 +313,55 @@ with right:
     team = his_team()
     if team:
         st.write(f"His team: **{team}**")
+    if ss.selected:
+        mins = selected_minutes(tracks, ss.selected, info["fps"], STRIDE)
+        st.progress(min(1.0, mins / max(info["duration"] / 60, 1e-6)),
+                    text=f"Selected: {mins:.1f} of {info['duration'] / 60:.1f} min")
     if st.button("Auto-find his other IDs", disabled=not ss.selected,
-                 help="Guesses which new IDs are him after the tracker lost him. Only looks at "
-                      "his own team. Check the result!"):
+                 help="Links IDs on the pitch: same team, close enough to where he was going, "
+                      "never on screen at the same time as him. Skips anything ambiguous."):
         before = set(ss.selected)
+        if id_links():
+            ss.selected = chain_of(id_links(), ss.selected)
         allowed = ({t for t, lab in labels.items() if lab in (team, UNKNOWN)} if team else None)
         ss.selected = auto_stitch(tracks, ss.selected, max_gap_frames=int(info["fps"] * 2),
                                   allowed_ids=allowed)
         added = ss.selected - before
-        st.toast(f"Added {len(added)} ID(s): {sorted(added)}" if added else "Nothing new found.")
+        st.toast(f"Added {len(added)} ID(s)." if added else "Nothing new found.")
         st.rerun()
+    g1, g2 = st.columns(2)
+    if g1.button("Next gap", disabled=not ss.selected,
+                 help="Jump to the next stretch where he isn't selected, at a moment where "
+                      "the app has a guess (yellow box)."):
+        rows_sel = player_rows(tracks, ss.selected)
+        gaps = [g for g in missing_stretches(rows_sel, info["frames"], min_length=int(info["fps"]))
+                if g[1] > frame_idx]
+        target = None
+        for start, end in gaps:
+            step = max(STRIDE, int(info["fps"] / 2))
+            for f in range(max(start, frame_idx + 1), end + 1, step):
+                f -= f % STRIDE
+                if suggestions(f):
+                    target = f
+                    break
+            if target is not None:
+                break
+        if target is None and gaps:
+            target = max(gaps[0][0], frame_idx + STRIDE)
+        if target is None:
+            st.toast("No more gaps after this frame.")
+        else:
+            ss.jump_to = target - target % STRIDE
+            st.rerun()
+    sugg_now = suggestions(frame_idx)
+    if g2.button("Yes, that's him", disabled=not sugg_now, type="primary",
+                 help="Adds the top yellow box (and every ID linked to it)."):
+        n_added = add_player(sugg_now[0][0])
+        st.toast(f"Added {n_added} ID(s). Press Next gap to continue.")
+        st.rerun()
+    if sugg_now:
+        st.caption("Yellow box = the app's best guess for him here. If it's wrong, click the "
+                   "right player instead (or Next gap if he's off screen).")
     if st.button("Clear selection", disabled=not ss.selected):
         ss.selected = set()
         st.rerun()
@@ -288,7 +375,7 @@ with right:
         for start, end in gaps[:8]:
             if st.button(f"Frames {start}-{end} ({(end - start + 1) / info['fps']:.0f} s)",
                          key=f"gap_{start}"):
-                ss.frame_idx = start - start % STRIDE
+                ss.jump_to = start - start % STRIDE
                 st.rerun()
         if len(gaps) > 8:
             st.caption(f"...and {len(gaps) - 8} more")
