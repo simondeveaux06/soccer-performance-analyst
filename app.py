@@ -23,6 +23,7 @@ from pitch import (  # noqa: E402
     DEFAULT_MODEL_PATH, PitchDetector, build_homographies, draw_projected_pitch, map_tracks_to_pitch,
     nearest_homography,
 )
+from heatmap import pitch_heatmap as pitch_heatmap_v2  # noqa: E402
 from stitch import chain_of, link_all, selected_minutes, suggest_at_frame  # noqa: E402
 from storage import RUNS_DIR, list_runs, load_run, run_dir_for, save_chunk, write_meta  # noqa: E402
 from teams import OFF_PITCH, OTHER, TEAM_A, TEAM_B, UNKNOWN, assign_teams  # noqa: E402
@@ -69,7 +70,7 @@ if source == "Open a tracked match":
         ss.video_key, ss.video_path, ss.workdir = key, meta["video"], str(run_path)
         ss.info = dict(video_info(meta["video"]), stride=meta.get("stride", 1))
         ss.tracks, ss.keypoints, ss.selected, ss.last_click = tracks_loaded, keypoints_loaded, set(), None
-        for k in ("highlight", "teams", "h_key", "frame_idx", "links", "pitch_sample"):
+        for k in ("highlight", "teams", "h_key", "frame_idx", "links", "pitch_sample", "track_frames"):
             ss.pop(k, None)
     if meta["status"] != "done":
         st.warning("This match isn't fully tracked yet. Run the same `track_match.py` command "
@@ -90,7 +91,7 @@ else:
         ss.video_key, ss.video_path, ss.workdir = key, str(path), str(folder)
         ss.info = dict(video_info(path), stride=1)
         ss.tracks, ss.keypoints, ss.selected, ss.last_click = None, {}, set(), None
-        for k in ("highlight", "teams", "h_key", "frame_idx", "links", "pitch_sample"):
+        for k in ("highlight", "teams", "h_key", "frame_idx", "links", "pitch_sample", "track_frames"):
             ss.pop(k, None)
 
 info = ss.info
@@ -135,6 +136,7 @@ if ss.tracks is None or rerun:  # starts automatically when a clip is dropped in
     ss.pop("teams", None)
     ss.pop("links", None)
     ss.pop("pitch_sample", None)
+    ss.pop("track_frames", None)
     bar.empty()
 
 tracks = ss.tracks
@@ -187,12 +189,53 @@ def id_links():
     return ss.links
 
 
+def track_frames():
+    """{track_id: set of frames it's on screen}, cached."""
+    if "track_frames" not in ss:
+        ss.track_frames = {int(t): set(f) for t, f in tracks.groupby("track_id")["frame"]}
+    return ss.track_frames
+
+
+def selected_frames():
+    tf = track_frames()
+    out = set()
+    for t in ss.selected:
+        out |= tf.get(t, set())
+    return out
+
+
+def add_ids_safely(candidates):
+    """Add IDs one by one (longest first), skipping any that would be on screen at the
+    same time as what's already selected: that would be a second person. Returns count."""
+    tf = track_frames()
+    taken = selected_frames()
+    added = 0
+    for t in sorted(set(candidates) - ss.selected, key=lambda t: -len(tf.get(t, ()))):
+        f = tf.get(t, set())
+        if f & taken:
+            continue
+        ss.selected.add(t)
+        taken |= f
+        added += 1
+    return added
+
+
 def add_player(tid):
-    """Add this ID and every ID chained to it. Returns how many IDs were added."""
-    new = chain_of(id_links(), {tid}) if id_links() else {tid}
-    added = new - ss.selected
-    ss.selected |= new
-    return len(added)
+    """Add this ID and every ID chained to it, never a second person.
+    Returns (ids_added, clash_frame); clash_frame is set if tid itself is someone else."""
+    both = track_frames().get(tid, set()) & selected_frames()
+    if both:
+        return 0, min(both)
+    ss.selected.add(tid)
+    chain = chain_of(id_links(), {tid}) if id_links() else {tid}
+    return 1 + add_ids_safely(chain - {tid}), None
+
+
+def mixed_frames():
+    """Frames where two selected IDs are on screen at once (= two people selected)."""
+    sel = tracks[tracks.track_id.isin(ss.selected)]
+    counts = sel.groupby("frame").size()
+    return int((counts > 1).sum())
 
 
 def suggestions(frame_no):
@@ -284,9 +327,14 @@ with left:
                 ss.selected.discard(tid)  # click a green box to remove that ID
                 st.rerun()
             else:
-                n_added = add_player(tid)
-                st.toast(f"Added {n_added} ID(s) linked to {tid}.")
-                st.rerun()
+                n_added, clash = add_player(tid)
+                if clash is not None:
+                    st.toast(f"That's a different player: ID {tid} is on screen at the same "
+                             f"time as yours (frame {clash}). To switch players, press "
+                             "Clear selection first.")
+                else:
+                    st.toast(f"Added {n_added} ID(s) linked to {tid}.")
+                    st.rerun()
 
 with right:
     if ss.keypoints:
@@ -313,6 +361,18 @@ with right:
     team = his_team()
     if team:
         st.write(f"His team: **{team}**")
+    n_mixed = mixed_frames() if ss.selected else 0
+    if n_mixed:
+        st.error(f"Your selection has **two people** on screen at once in {n_mixed} frames "
+                 f"({n_mixed * STRIDE / info['fps']:.0f} s). That mixes another player into "
+                 "his stats and heatmap.")
+        if st.button("Fix it (keep one player)", type="primary",
+                     help="Keeps the longest IDs and drops any that overlap with them."):
+            old = set(ss.selected)
+            ss.selected = set()
+            add_ids_safely(old)
+            st.toast(f"Kept {len(ss.selected)} of {len(old)} IDs. Check they're all him.")
+            st.rerun()
     if ss.selected:
         mins = selected_minutes(tracks, ss.selected, info["fps"], STRIDE)
         st.progress(min(1.0, mins / max(info["duration"] / 60, 1e-6)),
@@ -320,14 +380,13 @@ with right:
     if st.button("Auto-find his other IDs", disabled=not ss.selected,
                  help="Links IDs on the pitch: same team, close enough to where he was going, "
                       "never on screen at the same time as him. Skips anything ambiguous."):
-        before = set(ss.selected)
+        n = 0
         if id_links():
-            ss.selected = chain_of(id_links(), ss.selected)
+            n += add_ids_safely(chain_of(id_links(), ss.selected))
         allowed = ({t for t, lab in labels.items() if lab in (team, UNKNOWN)} if team else None)
-        ss.selected = auto_stitch(tracks, ss.selected, max_gap_frames=int(info["fps"] * 2),
-                                  allowed_ids=allowed)
-        added = ss.selected - before
-        st.toast(f"Added {len(added)} ID(s)." if added else "Nothing new found.")
+        n += add_ids_safely(auto_stitch(tracks, ss.selected, max_gap_frames=int(info["fps"] * 2),
+                                        allowed_ids=allowed))
+        st.toast(f"Added {n} ID(s)." if n else "Nothing new found.")
         st.rerun()
     g1, g2 = st.columns(2)
     if g1.button("Next gap", disabled=not ss.selected,
@@ -356,8 +415,9 @@ with right:
     sugg_now = suggestions(frame_idx)
     if g2.button("Yes, that's him", disabled=not sugg_now, type="primary",
                  help="Adds the top yellow box (and every ID linked to it)."):
-        n_added = add_player(sugg_now[0][0])
-        st.toast(f"Added {n_added} ID(s). Press Next gap to continue.")
+        n_added, clash = add_player(sugg_now[0][0])
+        st.toast(f"Added {n_added} ID(s). Press Next gap to continue." if clash is None else
+                 "That one turned out to overlap with him, so it wasn't added.")
         st.rerun()
     if sugg_now:
         st.caption("Yellow box = the app's best guess for him here. If it's wrong, click the "
@@ -446,7 +506,10 @@ else:
 
     st.subheader("Heatmap")
     flip = st.checkbox("Flip pitch (if his team attacks the other way)")
-    st.pyplot(pitch_heatmap(traj, length, width, flip=flip))
+    st.pyplot(pitch_heatmap_v2(traj, length, width, flip=flip, minutes=phys["minutes_tracked"]))
+    if phys["minutes_tracked"] < 0.6 * info["duration"] / 60:
+        st.caption(f"Only {phys['minutes_tracked']:.1f} of {info['duration'] / 60:.0f} min of him so "
+                   "far. Use Auto-find and Next gap above to add the rest.")
 
     st.subheader(f"Compared with pro {position.lower()}s")
     benchmarks = load_benchmarks()
