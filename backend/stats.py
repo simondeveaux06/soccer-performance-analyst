@@ -37,7 +37,7 @@ METRICS = {
     "hi_distance_p90": ("High intensity >20 km/h", "m / 90"),
     "hsr_count_p90": ("HSR efforts", "per 90"),
     "sprint_count_p90": ("Sprints", "per 90"),
-    "top_speed": ("Top speed (99th pct)", "km/h"),
+    "top_speed": ("Top speed (held 1 s)", "km/h"),
 }
 
 MAX_HUMAN_SPEED = 11.5  # m/s (~41 km/h). Anything faster is a tracking glitch.
@@ -48,28 +48,41 @@ MAX_HUMAN_SPEED = 11.5  # m/s (~41 km/h). Anything faster is a tracking glitch.
 def clean_trajectory(rows, fps, gap_s=0.5, smooth_s=0.5):
     """One player's pitch positions -> smoothed positions + speed.
 
-    Splits into segments wherever he wasn't mapped for > gap_s (no distance is
-    counted across a gap), removes teleport-style jumps, smooths, then
-    computes speed. Returns a DataFrame with t, x, y, speed (m/s), segment.
+    Splits into segments wherever he wasn't mapped for > gap_s AND wherever his
+    track ID changes (the box usually shifts a little at an ID change, and that
+    shift must not count as running). Removes impossible jumps, resamples to
+    10 Hz, smooths, then computes speed. Returns a DataFrame with
+    frame, t, x, y, speed (m/s), segment.
     """
-    df = rows[["frame", "pitch_x", "pitch_y"]].dropna().sort_values("frame")
+    cols = ["frame", "pitch_x", "pitch_y"] + (["track_id"] if "track_id" in rows else [])
+    df = rows[cols].dropna().sort_values("frame")
     if len(df) < 3:
-        return pd.DataFrame(columns=["t", "x", "y", "speed", "segment"])
+        return pd.DataFrame(columns=["frame", "t", "x", "y", "speed", "segment"])
     df = df.assign(t=df.frame / fps)
 
     new_seg = df.t.diff().fillna(np.inf) > gap_s
+    if "track_id" in df:
+        new_seg |= df.track_id.ne(df.track_id.shift())
     df["segment"] = new_seg.cumsum()
 
     from scipy.signal import savgol_filter
 
-    hz = 10.0                                   # same rate as SkillCorner tracking
-    win = max(5, int(round(smooth_s * hz * 2)) | 1)  # odd, ~1 s window
+    hz = 10.0                                         # same rate as SkillCorner tracking
+    win = max(5, int(round(smooth_s * hz * 2)) | 1)   # odd, ~1 s window
     parts = []
     for seg_id, seg in df.groupby("segment"):
         if seg.t.iloc[-1] - seg.t.iloc[0] < 1.0:
             continue  # too short to say anything about speed
         seg = seg.copy()
-        # Median over ~0.3 s removes spikes from box wobble / bad mappings.
+        # Throw out points that jump away from where he is over the surrounding
+        # second (box flicker, a bad pitch mapping): a player can't teleport.
+        k1 = max(3, int(round(1.0 * fps / max(seg.frame.diff().median(), 1))) | 1)
+        mx = seg.pitch_x.rolling(k1, center=True, min_periods=1).median()
+        my = seg.pitch_y.rolling(k1, center=True, min_periods=1).median()
+        seg = seg[np.hypot(seg.pitch_x - mx, seg.pitch_y - my) <= 2.5]
+        if len(seg) < 3 or seg.t.iloc[-1] - seg.t.iloc[0] < 1.0:
+            continue
+        # Median over ~0.3 s removes the remaining small spikes.
         k = max(3, int(round(0.3 * fps)) | 1)
         for c in ("pitch_x", "pitch_y"):
             seg[c] = seg[c].rolling(k, center=True, min_periods=1).median()
@@ -93,6 +106,17 @@ def clean_trajectory(rows, fps, gap_s=0.5, smooth_s=0.5):
     if not parts:
         return pd.DataFrame(columns=["frame", "t", "x", "y", "speed", "segment"])
     return pd.concat(parts, ignore_index=True)
+
+
+def held_speed(traj, hold_s=1.0, hz=10.0):
+    """Fastest speed (km/h) he kept up for at least hold_s seconds.
+    A one-frame glitch can't produce this; a real sprint does."""
+    n = max(1, int(round(hold_s * hz)))
+    best = 0.0
+    for _, seg in traj.groupby("segment"):
+        if len(seg) >= n:
+            best = max(best, float(seg.speed.rolling(n).min().max()))
+    return best * 3.6
 
 
 # ---------------------------------------------------------------- stats
@@ -143,8 +167,8 @@ def physical_stats(traj):
     stats["hi_distance"] = s.hsr + s.sprint
     stats["hsr_count"] = s.hsr_count
     stats["sprint_count"] = s.sprint_count
-    stats["top_speed"] = float(np.percentile(traj.speed * 3.6, 99)) if len(traj) else 0.0
-    stats["max_speed"] = float(traj.speed.max() * 3.6)
+    stats["top_speed"] = held_speed(traj, 1.0)   # fastest speed held for a full second
+    stats["max_speed"] = held_speed(traj, 0.5)   # fastest held for half a second
 
     per90 = 90 / minutes if minutes > 0 else np.nan
     for k in ("total_distance", "running_distance", "hsr_distance", "sprint_distance",
