@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 
 import cv2
+import pandas as pd
 import streamlit as st
 from PIL import Image
 from streamlit_image_coordinates import streamlit_image_coordinates
@@ -25,7 +26,8 @@ from pitch import (  # noqa: E402
 )
 from heatmap import pitch_heatmap as pitch_heatmap_v2  # noqa: E402
 from stitch import chain_of, link_all, selected_minutes, suggest_at_frame  # noqa: E402
-from storage import RUNS_DIR, list_runs, load_run, run_dir_for, save_chunk, write_meta  # noqa: E402
+from reid import group_players, ids_of_player  # noqa: E402
+from storage import RUNS_DIR, list_runs, load_extras, load_run, run_dir_for, save_chunk, write_meta  # noqa: E402
 from teams import OFF_PITCH, OTHER, TEAM_A, TEAM_B, UNKNOWN, assign_teams  # noqa: E402
 from stats import (  # noqa: E402
     clean_trajectory, compare_to_pros, load_benchmarks, percentile_chart, physical_stats,
@@ -67,10 +69,11 @@ if source == "Open a tracked match":
             st.stop()
         with st.spinner("Loading saved tracking..."):
             tracks_loaded, keypoints_loaded, _ = load_run(run_path)
+            ss.extras = load_extras(run_path)
         ss.video_key, ss.video_path, ss.workdir = key, meta["video"], str(run_path)
         ss.info = dict(video_info(meta["video"]), stride=meta.get("stride", 1))
         ss.tracks, ss.keypoints, ss.selected, ss.last_click = tracks_loaded, keypoints_loaded, set(), None
-        for k in ("highlight", "teams", "h_key", "frame_idx", "links", "pitch_sample", "track_frames"):
+        for k in ("highlight", "teams", "h_key", "frame_idx", "links", "pitch_sample", "track_frames", "players"):
             ss.pop(k, None)
     if meta["status"] != "done":
         st.warning("This match isn't fully tracked yet. Run the same `track_match.py` command "
@@ -91,7 +94,8 @@ else:
         ss.video_key, ss.video_path, ss.workdir = key, str(path), str(folder)
         ss.info = dict(video_info(path), stride=1)
         ss.tracks, ss.keypoints, ss.selected, ss.last_click = None, {}, set(), None
-        for k in ("highlight", "teams", "h_key", "frame_idx", "links", "pitch_sample", "track_frames"):
+        ss.extras = None
+        for k in ("highlight", "teams", "h_key", "frame_idx", "links", "pitch_sample", "track_frames", "players"):
             ss.pop(k, None)
 
 info = ss.info
@@ -117,15 +121,16 @@ if ss.tracks is None or rerun:  # starts automatically when a clip is dropped in
                                 "Don't click anything until it's done.")
     detector = PitchDetector() if use_pitch else None
     stride = 2 if fast else 1
-    ss.tracks, ss.keypoints = track_players(
+    ss.tracks, ss.keypoints, ss.extras = track_players(
         ss.video_path, conf=conf, pitch_detector=detector, stride=stride,
         progress=lambda p: bar.progress(p, text=f"Tracking... {p:.0%}"))
     ss.info["stride"] = stride
     # Save it, so this clip shows up under "Open a tracked match" next time.
     run_path = Path(ss.workdir)
-    for old in list(run_path.glob("tracks_*.parquet")) + list(run_path.glob("keypoints_*.npz")):
-        old.unlink()
-    save_chunk(run_path, ss.tracks, ss.keypoints)
+    for pattern in ("tracks_*.parquet", "keypoints_*.npz", "looks_*.npz", "numbers_*.parquet"):
+        for old in run_path.glob(pattern):
+            old.unlink()
+    save_chunk(run_path, ss.tracks, ss.keypoints, ss.extras)
     write_meta(run_path, {"video": ss.video_path, "name": Path(ss.video_path).stem,
                           "fps": info["fps"], "frames": info["frames"], "width": info["width"],
                           "height": info["height"], "stride": stride, "status": "done",
@@ -137,6 +142,7 @@ if ss.tracks is None or rerun:  # starts automatically when a clip is dropped in
     ss.pop("links", None)
     ss.pop("pitch_sample", None)
     ss.pop("track_frames", None)
+    ss.pop("players", None)
     bar.empty()
 
 tracks = ss.tracks
@@ -168,8 +174,15 @@ def team_labels():
             pitch_xy, _ = map_tracks_to_pitch(sample, ss.keypoints, image_size=IMAGE_SIZE,
                                               max_gap_frames=int(info["fps"]), margin_m=40.0)
         ss.pitch_sample = pitch_xy
-        ss.teams = assign_teams(tracks, pitch_xy=pitch_xy)
+        labels_, info_ = assign_teams(tracks, pitch_xy=pitch_xy)
+        if "role" in tracks:  # the football detector knows who the referees are
+            role = tracks.groupby("track_id")["role"].agg(lambda r: r.value_counts().idxmax())
+            for t in role[role == "referee"].index:
+                labels_[int(t)] = OTHER
+            info_["counts"] = pd.Series(labels_).value_counts().to_dict() if labels_ else {}
+        ss.teams = (labels_, info_)
         ss.pop("links", None)
+        ss.pop("players", None)
     return ss.teams
 
 
@@ -187,6 +200,15 @@ def id_links():
         ps = ss.get("pitch_sample")
         ss.links = link_all(ps, info["fps"], labels) if ps is not None and len(ps) else {}
     return ss.links
+
+
+def player_groups():
+    """Every ID grouped into a real player (number > position > appearance), cached.
+    Returns (player_of, reason_of)."""
+    if "players" not in ss:
+        ss.players = group_players(tracks, ss.get("pitch_sample"), labels,
+                                   ss.get("extras"), info["fps"])
+    return ss.players
 
 
 def track_frames():
@@ -227,8 +249,10 @@ def add_player(tid):
     if both:
         return 0, min(both)
     ss.selected.add(tid)
-    chain = chain_of(id_links(), {tid}) if id_links() else {tid}
-    return 1 + add_ids_safely(chain - {tid}), None
+    group = ids_of_player(player_groups()[0], tid)
+    if id_links():
+        group |= chain_of(id_links(), {tid})
+    return 1 + add_ids_safely(group - {tid}), None
 
 
 def mixed_frames():
@@ -374,6 +398,8 @@ with right:
             st.toast(f"Kept {len(ss.selected)} of {len(old)} IDs. Check they're all him.")
             st.rerun()
     if ss.selected:
+        reasons = pd.Series([player_groups()[1].get(t, "clicked") for t in ss.selected]).value_counts()
+        st.caption("Linked by: " + ", ".join(f"{r} ({n})" for r, n in reasons.items()))
         mins = selected_minutes(tracks, ss.selected, info["fps"], STRIDE)
         st.progress(min(1.0, mins / max(info["duration"] / 60, 1e-6)),
                     text=f"Selected: {mins:.1f} of {info['duration'] / 60:.1f} min")
@@ -381,6 +407,9 @@ with right:
                  help="Links IDs on the pitch: same team, close enough to where he was going, "
                       "never on screen at the same time as him. Skips anything ambiguous."):
         n = 0
+        player_of = player_groups()[0]
+        for t in list(ss.selected):
+            n += add_ids_safely(ids_of_player(player_of, t))
         if id_links():
             n += add_ids_safely(chain_of(id_links(), ss.selected))
         allowed = ({t for t, lab in labels.items() if lab in (team, UNKNOWN)} if team else None)

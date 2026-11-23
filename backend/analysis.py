@@ -17,7 +17,7 @@ import pandas as pd
 MODEL_NAME = "yolo11n.pt"
 
 COLUMNS = ["frame", "track_id", "x1", "y1", "x2", "y2", "confidence",
-           "shirt_l", "shirt_a", "shirt_b"]
+           "shirt_l", "shirt_a", "shirt_b", "role"]
 
 
 # ---------------------------------------------------------------- video helpers
@@ -47,35 +47,60 @@ def read_frame(path, index):
 
 # ---------------------------------------------------------------- tracking
 
-def track_players(path, conf=0.30, progress=None, model_name=MODEL_NAME,
+FOOTBALL_MODEL = Path(__file__).resolve().parent.parent / "models" / "football-player-detection.pt"
+TRACKER_CFG = Path(__file__).resolve().parent / "trackers" / "patient_botsort.yaml"
+PERSON_ROLES = ("player", "goalkeeper", "referee")
+
+
+def detector_name():
+    """The football-specific detector if downloaded, otherwise the general person model."""
+    return str(FOOTBALL_MODEL) if FOOTBALL_MODEL.exists() else MODEL_NAME
+
+
+def track_players(path, conf=0.30, progress=None, model_name=None,
                   pitch_detector=None, pitch_every=3, colour_every=5,
                   stride=1, start_frame=0, id_offset=0,
-                  checkpoint=None, checkpoint_every=1500):
+                  checkpoint=None, checkpoint_every=1500,
+                  imgsz=1280, look_every=10, read_numbers=True, number_every=10):
     """Track every person in the video.
 
-    Returns (tracks, keypoints):
+    Returns (tracks, keypoints, extras):
       tracks    DataFrame, one row per box. foot_x / foot_y is the bottom-centre
-                of the box (where the player touches the ground).
+                of the box (where the player touches the ground). `role` is
+                player / goalkeeper / referee (football model) or person.
       keypoints {frame: (xy, conf)} pitch landmarks (empty without a pitch_detector).
+      extras    {"looks": (track_ids, frames, vectors), "numbers": DataFrame}:
+                appearance fingerprints and shirt-number readings, used to
+                recognise a player again after he's been lost.
 
     stride       look at every `stride`-th frame only (2 = "fast mode", about 2x quicker).
                  Frame numbers stay the real ones, so timings stay correct.
     start_frame  begin here (used to resume an interrupted run).
     id_offset    added to track IDs (so resumed IDs don't clash with earlier ones).
-    checkpoint   optional function(new_rows_df, new_keypoints, next_frame), called every
-                 `checkpoint_every` processed frames with what's new since last time.
-    pitch_every / colour_every are in real frames: pitch landmarks and shirt colours
-    are sampled about that often.
+    checkpoint   optional function(new_rows_df, new_keypoints, next_frame, new_extras),
+                 called every `checkpoint_every` processed frames.
+    imgsz        detection resolution; 1280 finds far-away players much better than 640.
+    pitch_every / colour_every / look_every / number_every are in real frames.
     """
     from teams import shirt_colour
     from ultralytics import YOLO  # imported here so the app starts fast
+    from appearance import Fingerprinter, NumberReader
 
-    model = YOLO(model_name)
+    model = YOLO(model_name or detector_name())
+    names = model.names
+    football = any(str(n).lower() in PERSON_ROLES for n in names.values())
+    classes = ([k for k, n in names.items() if str(n).lower() in PERSON_ROLES] if football else [0])
+    tracker = str(TRACKER_CFG) if TRACKER_CFG.exists() else "botsort.yaml"
+    fingerprint = Fingerprinter()
+    reader = NumberReader() if read_numbers else None
+
     total = video_info(path)["frames"]
     pitch_step = max(1, round(pitch_every / stride))
     colour_step = max(1, round(colour_every / stride))
-    all_rows, all_kp = [], {}
-    new_rows, new_kp = [], {}
+    look_step = max(1, round(look_every / stride))
+    number_step = max(1, round(number_every / stride))
+    all_rows, all_kp, all_ex = [], {}, _empty_extras()
+    new_rows, new_kp, new_ex = [], {}, _empty_extras()
 
     cap = cv2.VideoCapture(str(path))
     if start_frame:
@@ -86,21 +111,31 @@ def track_players(path, conf=0.30, progress=None, model_name=MODEL_NAME,
             ok, frame = cap.read()
             if not ok:
                 break
-            result = model.track(frame, persist=True, tracker="bytetrack.yaml", conf=conf,
-                                 classes=[0], verbose=False)[0]
+            result = model.track(frame, persist=True, tracker=tracker, conf=conf,
+                                 classes=classes, imgsz=imgsz, verbose=False)[0]
             boxes = result.boxes
             if boxes is not None and boxes.id is not None:
                 sample = done % colour_step == 0
-                for (x1, y1, x2, y2), tid, c in zip(
-                    boxes.xyxy.cpu().numpy(),
-                    boxes.id.int().cpu().tolist(),
-                    boxes.conf.cpu().tolist(),
-                ):
+                xyxy = boxes.xyxy.cpu().numpy()
+                tids = [t + id_offset for t in boxes.id.int().cpu().tolist()]
+                confs = boxes.conf.cpu().tolist()
+                roles = [str(names[int(c)]).lower() if football else "person"
+                         for c in boxes.cls.cpu().tolist()]
+                for (x1, y1, x2, y2), tid, c, role in zip(xyxy, tids, confs, roles):
                     lab = shirt_colour(frame, x1, y1, x2, y2) if sample else None
                     sl, sa, sb = lab if lab is not None else (np.nan, np.nan, np.nan)
-                    new_rows.append((frame_index, tid + id_offset, float(x1), float(y1),
+                    new_rows.append((frame_index, tid, float(x1), float(y1),
                                      float(x2), float(y2), float(c),
-                                     float(sl), float(sa), float(sb)))
+                                     float(sl), float(sa), float(sb), role))
+                if done % look_step == 0:
+                    vecs, keep = fingerprint(frame, xyxy)
+                    for k, v in zip(keep, vecs):
+                        new_ex["looks"][0].append(tids[k])
+                        new_ex["looks"][1].append(frame_index)
+                        new_ex["looks"][2].append(v)
+                if reader is not None and done % number_step == 0:
+                    for k, (num, p) in reader(frame, xyxy):
+                        new_ex["numbers"].append((tids[k], frame_index, num, p))
             if pitch_detector is not None and done % pitch_step == 0:
                 found = pitch_detector.detect(frame)
                 if found is not None:
@@ -114,21 +149,40 @@ def track_players(path, conf=0.30, progress=None, model_name=MODEL_NAME,
             if progress and total:
                 progress(min(frame_index / total, 1.0))
             if checkpoint and done % checkpoint_every == 0:
-                checkpoint(_rows_to_df(new_rows), new_kp, frame_index)
+                checkpoint(_rows_to_df(new_rows), new_kp, frame_index, _pack_extras(new_ex))
                 all_rows += new_rows
                 all_kp.update(new_kp)
-                new_rows, new_kp = [], {}
+                _merge_extras(all_ex, new_ex)
+                new_rows, new_kp, new_ex = [], {}, _empty_extras()
     finally:
         cap.release()
         # Hand over whatever is left (also when interrupted with Ctrl+C).
         if checkpoint and (new_rows or new_kp):
-            checkpoint(_rows_to_df(new_rows), new_kp, frame_index)
+            checkpoint(_rows_to_df(new_rows), new_kp, frame_index, _pack_extras(new_ex))
         all_rows += new_rows
         all_kp.update(new_kp)
+        _merge_extras(all_ex, new_ex)
 
-    return _rows_to_df(all_rows), all_kp
+    return _rows_to_df(all_rows), all_kp, _pack_extras(all_ex)
 
 
+def _empty_extras():
+    return {"looks": ([], [], []), "numbers": []}
+
+
+def _merge_extras(into, new):
+    for a, b in zip(into["looks"], new["looks"]):
+        a += b
+    into["numbers"] += new["numbers"]
+
+
+def _pack_extras(ex):
+    ids, frames, vecs = ex["looks"]
+    dim = len(vecs[0]) if vecs else 0
+    looks = (np.array(ids, np.int64), np.array(frames, np.int64),
+             np.array(vecs, np.float16).reshape(len(vecs), dim))
+    numbers = pd.DataFrame(ex["numbers"], columns=["track_id", "frame", "number", "conf"])
+    return {"looks": looks, "numbers": numbers}
 
 
 def _rows_to_df(rows):
@@ -233,8 +287,6 @@ def missing_stretches(rows, total_frames, min_length=15):
     if start is not None and total_frames - start >= min_length:
         stretches.append((start, total_frames - 1))
     return stretches
-
-
 
 
 # ---------------------------------------------------------------- results

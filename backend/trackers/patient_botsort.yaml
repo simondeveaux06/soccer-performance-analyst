@@ -1,0 +1,14 @@
+# BoT-SORT tuned for football: waits longer for lost players, uses camera-motion
+# compensation (panning cameras) and appearance to re-attach briefly hidden players.
+tracker_type: botsort
+track_high_thresh: 0.25
+track_low_thresh: 0.1
+new_track_thresh: 0.3
+track_buffer: 90          # ~3 s before giving up on a lost player (was 30 = ~1 s)
+match_thresh: 0.8
+fuse_score: True
+gmc_method: sparseOptFlow # compensates for the camera panning
+proximity_thresh: 0.5
+appearance_thresh: 0.75
+with_reid: True           # use appearance to re-attach players
+model: auto               # appearance features from the detector itself (no extra download)

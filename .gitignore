@@ -5,3 +5,4 @@ backend/outputs/
 __pycache__/
 models/
 runs/
+*.mp4

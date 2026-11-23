@@ -17,7 +17,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "backend"))
-from analysis import track_players, video_info  # noqa: E402
+from analysis import detector_name, track_players, video_info  # noqa: E402
 from pitch import DEFAULT_MODEL_PATH, PitchDetector  # noqa: E402
 from storage import clear_run, load_run, read_meta, run_dir_for, save_chunk, write_meta  # noqa: E402
 
@@ -32,6 +32,9 @@ def main():
     ap.add_argument("--conf", type=float, default=0.30, help="detection confidence (default 0.30)")
     ap.add_argument("--no-pitch", action="store_true", help="skip pitch mapping")
     ap.add_argument("--restart", action="store_true", help="ignore any saved progress, start over")
+    ap.add_argument("--imgsz", type=int, default=1280,
+                    help="detection resolution (1280 finds far players; 640 is faster)")
+    ap.add_argument("--no-numbers", action="store_true", help="don't try to read shirt numbers")
     args = ap.parse_args()
 
     video = Path(args.video).resolve()
@@ -46,7 +49,8 @@ def main():
         print("Note: pitch model not found (run: bash download_models.sh), so no pitch mapping.")
 
     run_dir = run_dir_for(video)
-    settings = {"stride": stride, "conf": args.conf, "pitch": use_pitch}
+    settings = {"stride": stride, "conf": args.conf, "pitch": use_pitch, "imgsz": args.imgsz,
+                "numbers": not args.no_numbers, "detector": Path(detector_name()).name}
     meta = read_meta(run_dir)
     start, id_offset = 0, 0
     if meta and not args.restart and meta.get("video") == str(video) and meta.get("settings") == settings:
@@ -66,8 +70,8 @@ def main():
             "stride": stride, "status": "partial", "next_frame": start}
     write_meta(run_dir, meta)
 
-    def checkpoint(new_tracks, new_keypoints, next_frame):
-        save_chunk(run_dir, new_tracks, new_keypoints)
+    def checkpoint(new_tracks, new_keypoints, next_frame, new_extras=None):
+        save_chunk(run_dir, new_tracks, new_keypoints, new_extras)
         meta["next_frame"] = int(next_frame)
         write_meta(run_dir, meta)
 
@@ -84,12 +88,16 @@ def main():
 
     mode = "fast mode, every 2nd frame" if stride == 2 else f"every {stride} frames" if stride > 1 else "every frame"
     print(f"Tracking {video.name}: {info['duration'] / 60:.0f} min of video, {mode}.")
+    print(f"Detector: {Path(detector_name()).name} at {args.imgsz}px"
+          + ("" if "football" in detector_name() else
+             "  (tip: bash download_models.sh gets the football-specific detector)"))
     print("Ctrl+C stops safely; run the same command again to continue.")
     try:
         track_players(video, conf=args.conf, progress=progress,
                       pitch_detector=PitchDetector() if use_pitch else None,
                       stride=stride, start_frame=start, id_offset=id_offset,
-                      checkpoint=checkpoint, checkpoint_every=CHECKPOINT_EVERY)
+                      checkpoint=checkpoint, checkpoint_every=CHECKPOINT_EVERY,
+                      imgsz=args.imgsz, read_numbers=not args.no_numbers)
     except KeyboardInterrupt:
         print(f"\nStopped at frame {meta['next_frame']}. Progress saved; "
               "run the same command again to continue.")

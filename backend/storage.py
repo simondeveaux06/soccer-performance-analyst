@@ -34,11 +34,15 @@ def write_meta(run_dir, meta):
     tmp.replace(Path(run_dir) / "meta.json")  # atomic: never a half-written file
 
 
-def save_chunk(run_dir, tracks, keypoints):
-    """Append one chunk of tracks + keypoints to the run folder."""
+def save_chunk(run_dir, tracks, keypoints, extras=None):
+    """Append one chunk of tracks + keypoints (+ fingerprints / numbers) to the run folder."""
     run_dir = Path(run_dir)
     run_dir.mkdir(parents=True, exist_ok=True)
     n = len(list(run_dir.glob("tracks_*.parquet")))
+    if extras is not None:
+        ids, frames, vecs = extras["looks"]
+        np.savez_compressed(run_dir / f"looks_{n:03d}.npz", ids=ids, frames=frames, vecs=vecs)
+        extras["numbers"].to_parquet(run_dir / f"numbers_{n:03d}.parquet", index=False)
     tracks.to_parquet(run_dir / f"tracks_{n:03d}.parquet", index=False)
     frames = np.array(sorted(keypoints), dtype=np.int64)
     if len(frames):
@@ -66,9 +70,27 @@ def load_run(run_dir):
     return tracks, keypoints, meta
 
 
+def load_extras(run_dir):
+    """Appearance fingerprints and shirt-number readings saved with a run (may be empty)."""
+    run_dir = Path(run_dir)
+    ids, frames, vecs = [], [], []
+    for p in sorted(run_dir.glob("looks_*.npz")):
+        z = np.load(p)
+        if len(z["ids"]):
+            ids.append(z["ids"]); frames.append(z["frames"]); vecs.append(z["vecs"])
+    looks = ((np.concatenate(ids), np.concatenate(frames), np.concatenate(vecs)) if ids
+             else (np.zeros(0, np.int64), np.zeros(0, np.int64), np.zeros((0, 0), np.float16)))
+    parts = [pd.read_parquet(p) for p in sorted(run_dir.glob("numbers_*.parquet"))]
+    numbers = (pd.concat(parts, ignore_index=True) if parts
+               else pd.DataFrame(columns=["track_id", "frame", "number", "conf"]))
+    return {"looks": looks, "numbers": numbers}
+
+
 def clear_run(run_dir):
-    for p in list(Path(run_dir).glob("tracks_*.parquet")) + list(Path(run_dir).glob("keypoints_*.npz")):
-        p.unlink()
+    run_dir = Path(run_dir)
+    for pattern in ("tracks_*.parquet", "keypoints_*.npz", "looks_*.npz", "numbers_*.parquet"):
+        for p in run_dir.glob(pattern):
+            p.unlink()
 
 
 def list_runs(runs_dir=RUNS_DIR):
